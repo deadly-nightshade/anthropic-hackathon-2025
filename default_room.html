@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lofi Girl Room - Interactive 3D Scene</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+        
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+        
+        #info h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #ffa07a;
+        }
+        
+        #info p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        
+        #object-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(255, 160, 122, 0.9);
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+            z-index: 100;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        .control-key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 0 2px;
+            font-family: monospace;
+        }
+        
+        /* Todo List Modal */
+        #todo-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) perspective(1000px) rotateY(-2deg) rotateX(3deg);
+            background: linear-gradient(135deg, #fff9e6 0%, #fffef0 50%, #fff9e6 100%);
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 
+                -15px 20px 60px rgba(0, 0, 0, 0.4),
+                -5px 8px 20px rgba(0, 0, 0, 0.2),
+                inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            max-width: 600px;
+            width: 85vw;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: notebookOpen 0.5s ease-out;
+            border: 3px solid #8b4513;
+            border-left: 15px solid #6b3410;
+        }
+        
+        @keyframes notebookOpen {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) perspective(1000px) rotateY(-15deg) rotateX(10deg) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) perspective(1000px) rotateY(-2deg) rotateX(3deg) scale(1);
+            }
+        }
+        
+        /* Spiral binding effect */
+        #todo-modal::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                transparent 8%,
+                #333 8%,
+                #333 12%,
+                transparent 12%,
+                transparent 20%,
+                #333 20%,
+                #333 24%,
+                transparent 24%,
+                transparent 32%,
+                #333 32%,
+                #333 36%,
+                transparent 36%,
+                transparent 44%,
+                #333 44%,
+                #333 48%,
+                transparent 48%,
+                transparent 56%,
+                #333 56%,
+                #333 60%,
+                transparent 60%,
+                transparent 68%,
+                #333 68%,
+                #333 72%,
+                transparent 72%,
+                transparent 80%,
+                #333 80%,
+                #333 84%,
+                transparent 84%,
+                transparent 92%,
+                #333 92%,
+                #333 96%,
+                transparent 96%
+            );
+            z-index: 2;
+        }
+        
+        #todo-modal-inner {
+            padding: 50px 60px 40px 40px;
+            overflow-y: auto;
+            max-height: 85vh;
+            position: relative;
+        }
+        
+        /* Scrollbar styling */
+        #todo-modal-inner::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #todo-modal-inner::-webkit-scrollbar-track {
+            background: rgba(210, 180, 140, 0.2);
+            border-radius: 4px;
+        }
+        
+        #todo-modal-inner::-webkit-scrollbar-thumb {
+            background: rgba(139, 69, 19, 0.4);
+            border-radius: 4px;
+        }
+        
+        #todo-modal-inner::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 69, 19, 0.6);
+        }
+        
+        #todo-modal h2 {
+            margin: 0 0 10px 0;
+            color: #5d4e37;
+            font-size: 32px;
+            text-align: left;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+            letter-spacing: 1px;
+        }
+        
+        .notebook-date {
+            font-size: 14px;
+            color: #8b7355;
+            font-style: italic;
+            margin-bottom: 25px;
+            font-family: 'Courier New', monospace;
+            text-align: left;
+        }
+        
+        #todo-modal .notebook-lines {
+            background-image: 
+                linear-gradient(90deg, #e8d5c4 1px, transparent 1px),
+                linear-gradient(to bottom, transparent 39px, #d4c4b0 39px, #d4c4b0 40px, transparent 40px);
+            background-size: 100% 100%, 100% 40px;
+            background-position: 30px 0, 0 0;
+            padding: 20px 0;
+            position: relative;
+        }
+        
+        /* Red margin line */
+        #todo-modal .notebook-lines::before {
+            content: '';
+            position: absolute;
+            left: 35px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #ff6b6b;
+            opacity: 0.4;
+        }
+        
+        #todo-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+        
+        #todo-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-bottom: 2px solid #8b7355;
+            background: transparent;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #todo-input:focus {
+            border-bottom-color: #5d4e37;
+        }
+        
+        #todo-input::placeholder {
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        #add-todo-btn {
+            padding: 12px 24px;
+            background: #8b4513;
+            color: #fff9e6;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 3px 8px rgba(139, 69, 19, 0.3);
+        }
+        
+        #add-todo-btn:hover {
+            background: #704010;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.4);
+        }
+        
+        #add-todo-btn:active {
+            transform: translateY(0);
+        }
+        
+        #todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 10px;
+            margin-bottom: 3px;
+            background: transparent;
+            border: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            line-height: 40px;
+            min-height: 40px;
+            position: relative;
+        }
+        
+        .todo-item:hover {
+            background: rgba(139, 69, 19, 0.05);
+            transform: translateX(3px);
+        }
+        
+        .todo-item.completed .todo-text {
+            opacity: 0.5;
+            text-decoration: line-through;
+            color: #888;
+        }
+        
+        .todo-checkbox {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: #8b4513;
+            flex-shrink: 0;
+        }
+        
+        .todo-text {
+            flex: 1;
+            font-size: 18px;
+            color: #2c2416;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        
+        .todo-delete {
+            background: transparent;
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+        
+        .todo-delete:hover {
+            background: #ff6b6b;
+            color: white;
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        
+        #close-todo-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 40px;
+            background: #8b4513;
+            color: #fff9e6;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        #close-todo-btn:hover {
+            background: #704010;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+        
+        #todo-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            backdrop-filter: blur(8px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+            font-style: italic;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+        }
+        
+        /* Paper texture effect */
+        #todo-modal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 69, 19, 0.03) 2px, rgba(139, 69, 19, 0.03) 4px);
+            pointer-events: none;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="info">
+        <h2>🎧 Lofi Study Room</h2>
+        <p><span class="control-key">Left Click + Drag</span> Rotate view</p>
+        <p><span class="control-key">Right Click + Drag</span> Pan view</p>
+        <p><span class="control-key">Scroll</span> Zoom in/out</p>
+        <p><span class="control-key">Drag Objects</span> Move them around 🎨</p>
+        <p><span class="control-key">Click Notebook</span> Open Todo List 📝</p>
+        <p><span class="control-key">Click Objects</span> Interact</p>
+    </div>
+    
+    <div id="object-info"></div>
+    
+    <!-- Todo List Modal -->
+    <div id="todo-overlay"></div>
+    <div id="todo-modal">
+        <div id="todo-modal-inner">
+            <h2>📓 My Study Notes</h2>
+            <div class="notebook-date" id="notebook-date"></div>
+            <div class="notebook-lines">
+                <div id="todo-input-container">
+                    <input type="text" id="todo-input" placeholder="Write a task..." />
+                    <button id="add-todo-btn">Add</button>
+                </div>
+                <ul id="todo-list"></ul>
+                <div id="empty-state" class="empty-state">
+                    ✏️ No tasks yet. Start writing!
+                </div>
+            </div>
+            <button id="close-todo-btn">Close Notebook</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5e6d3);
+        scene.fog = new THREE.Fog(0xf5e6d3, 10, 50);
+        
+        // Camera
+        const camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        camera.position.set(8, 5, 8);
+        camera.lookAt(0, 2, 0);
+        
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Lighting
+        let ambientLight, sunLight, fillLight;
+        
+        ambientLight = new THREE.AmbientLight(0xfff8e7, 0.6);
+        scene.add(ambientLight);
+        
+        sunLight = new THREE.DirectionalLight(0xffe4b5, 0.8);
+        sunLight.position.set(10, 15, 5);
+        sunLight.castShadow = true;
+        sunLight.shadow.camera.left = -15;
+        sunLight.shadow.camera.right = 15;
+        sunLight.shadow.camera.top = 15;
+        sunLight.shadow.camera.bottom = -15;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        scene.add(sunLight);
+        
+        fillLight = new THREE.PointLight(0xffb6c1, 0.4, 20);
+        fillLight.position.set(-5, 3, -5);
+        scene.add(fillLight);
+        
+        // Raycaster for object interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const clickableObjects = [];
+        
+        // Materials
+        const materials = {
+            wood: new THREE.MeshStandardMaterial({ 
+                color: 0x8b6f47, 
+                roughness: 0.8,
+                metalness: 0.1
+            }),
+            darkWood: new THREE.MeshStandardMaterial({ 
+                color: 0x5d4e37, 
+                roughness: 0.9,
+                metalness: 0.0
+            }),
+            wall: new THREE.MeshStandardMaterial({ 
+                color: 0xfff5e6, 
+                roughness: 0.9
+            }),
+            floor: new THREE.MeshStandardMaterial({ 
+                color: 0xd2b48c, 
+                roughness: 0.7
+            }),
+            window: new THREE.MeshPhysicalMaterial({ 
+                color: 0x87ceeb,
+                transparent: true,
+                opacity: 0.3,
+                metalness: 0.1,
+                roughness: 0.1
+            }),
+            book: new THREE.MeshStandardMaterial({ 
+                color: 0xdc143c, 
+                roughness: 0.6
+            }),
+            plant: new THREE.MeshStandardMaterial({ 
+                color: 0x228b22, 
+                roughness: 0.8
+            }),
+            pot: new THREE.MeshStandardMaterial({ 
+                color: 0xd2691e, 
+                roughness: 0.7
+            }),
+            lamp: new THREE.MeshStandardMaterial({ 
+                color: 0xffd700, 
+                emissive: 0xffd700,
+                emissiveIntensity: 0.3,
+                roughness: 0.3
+            }),
+            screen: new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a1a,
+                emissive: 0x4a90e2,
+                emissiveIntensity: 0.2,
+                roughness: 0.2
+            }),
+            fabric: new THREE.MeshStandardMaterial({ 
+                color: 0xff6b6b, 
+                roughness: 0.9
+            }),
+            paper: new THREE.MeshStandardMaterial({ 
+                color: 0xfffacd, 
+                roughness: 0.8
+            })
+        };
+        
+        // Room creation
+        function createRoom() {
+            const roomGroup = new THREE.Group();
+            
+            // Floor
+            const floorGeometry = new THREE.PlaneGeometry(20, 20);
+            const floor = new THREE.Mesh(floorGeometry, materials.floor);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            roomGroup.add(floor);
+            
+            // Walls
+            const wallHeight = 8;
+            
+            // Back wall
+            const backWall = new THREE.Mesh(
+                new THREE.BoxGeometry(20, wallHeight, 0.2),
+                materials.wall
+            );
+            backWall.position.set(0, wallHeight / 2, -10);
+            backWall.receiveShadow = true;
+            roomGroup.add(backWall);
+            
+            // Left wall
+            const leftWall = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, wallHeight, 20),
+                materials.wall
+            );
+            leftWall.position.set(-10, wallHeight / 2, 0);
+            leftWall.receiveShadow = true;
+            roomGroup.add(leftWall);
+            
+            // Right wall (partial - for window)
+            const rightWall1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, wallHeight, 8),
+                materials.wall
+            );
+            rightWall1.position.set(10, wallHeight / 2, -6);
+            rightWall1.receiveShadow = true;
+            roomGroup.add(rightWall1);
+            
+            const rightWall2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, wallHeight, 8),
+                materials.wall
+            );
+            rightWall2.position.set(10, wallHeight / 2, 6);
+            rightWall2.receiveShadow = true;
+            roomGroup.add(rightWall2);
+            
+            return roomGroup;
+        }
+        
+        // Window with view
+        function createWindow() {
+            const windowGroup = new THREE.Group();
+            
+            // Window frame with rounded corners
+            const frameMat = materials.darkWood;
+            
+            // Create rounded frame pieces
+            const createRoundedBar = (width, height, depth) => {
+                const shape = new THREE.Shape();
+                const w = width, h = height, r = Math.min(0.03, Math.min(w, h) / 4);
+                shape.moveTo(-w/2 + r, -h/2);
+                shape.lineTo(w/2 - r, -h/2);
+                shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+                shape.lineTo(w/2, h/2 - r);
+                shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+                shape.lineTo(-w/2 + r, h/2);
+                shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+                shape.lineTo(-w/2, -h/2 + r);
+                shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+                return new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: false });
+            };
+            
+            // Outer frame - top
+            const frameTop = new THREE.Mesh(createRoundedBar(4.4, 0.15, 0.15), frameMat);
+            frameTop.rotation.y = Math.PI / 2;
+            frameTop.position.set(10, 5, 0);
+            windowGroup.add(frameTop);
+            
+            // Outer frame - bottom
+            const frameBottom = new THREE.Mesh(createRoundedBar(4.4, 0.15, 0.15), frameMat);
+            frameBottom.rotation.y = Math.PI / 2;
+            frameBottom.position.set(10, 2, 0);
+            windowGroup.add(frameBottom);
+            
+            // Outer frame - left
+            const frameLeft = new THREE.Mesh(createRoundedBar(0.15, 3.3, 0.15), frameMat);
+            frameLeft.rotation.y = Math.PI / 2;
+            frameLeft.position.set(10, 3.5, -2.15);
+            windowGroup.add(frameLeft);
+            
+            // Outer frame - right
+            const frameRight = new THREE.Mesh(createRoundedBar(0.15, 3.3, 0.15), frameMat);
+            frameRight.rotation.y = Math.PI / 2;
+            frameRight.position.set(10, 3.5, 2.15);
+            windowGroup.add(frameRight);
+            
+            // Center divider (rounded)
+            const centerDivider = new THREE.Mesh(createRoundedBar(0.12, 3.15, 0.15), frameMat);
+            centerDivider.rotation.y = Math.PI / 2;
+            centerDivider.position.set(10, 3.5, 0);
+            windowGroup.add(centerDivider);
+            
+            // Glass panes with slight bevel
+            const pane1Shape = new THREE.Shape();
+            const pw = 1.9, ph = 2.9, pr = 0.1;
+            pane1Shape.moveTo(-pw/2 + pr, -ph/2);
+            pane1Shape.lineTo(pw/2 - pr, -ph/2);
+            pane1Shape.quadraticCurveTo(pw/2, -ph/2, pw/2, -ph/2 + pr);
+            pane1Shape.lineTo(pw/2, ph/2 - pr);
+            pane1Shape.quadraticCurveTo(pw/2, ph/2, pw/2 - pr, ph/2);
+            pane1Shape.lineTo(-pw/2 + pr, ph/2);
+            pane1Shape.quadraticCurveTo(-pw/2, ph/2, -pw/2, ph/2 - pr);
+            pane1Shape.lineTo(-pw/2, -ph/2 + pr);
+            pane1Shape.quadraticCurveTo(-pw/2, -ph/2, -pw/2 + pr, -ph/2);
+            
+            const pane1 = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(pane1Shape, { depth: 0.05, bevelEnabled: false }),
+                materials.window
+            );
+            pane1.rotation.y = Math.PI / 2;
+            pane1.position.set(9.95, 3.5, -1.05);
+            windowGroup.add(pane1);
+            
+            const pane2 = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(pane1Shape, { depth: 0.05, bevelEnabled: false }),
+                materials.window
+            );
+            pane2.rotation.y = Math.PI / 2;
+            pane2.position.set(9.95, 3.5, 1.05);
+            windowGroup.add(pane2);
+            
+            return windowGroup;
+        }
+        
+        // Desk
+        function createDesk() {
+            const deskGroup = new THREE.Group();
+            deskGroup.userData = { name: 'Study Desk', description: 'Where the magic happens ✨' };
+            
+            // Desktop with rounded edges
+            const desktopShape = new THREE.Shape();
+            const width = 5, depth = 2.5, radius = 0.2;
+            desktopShape.moveTo(-width/2 + radius, -depth/2);
+            desktopShape.lineTo(width/2 - radius, -depth/2);
+            desktopShape.quadraticCurveTo(width/2, -depth/2, width/2, -depth/2 + radius);
+            desktopShape.lineTo(width/2, depth/2 - radius);
+            desktopShape.quadraticCurveTo(width/2, depth/2, width/2 - radius, depth/2);
+            desktopShape.lineTo(-width/2 + radius, depth/2);
+            desktopShape.quadraticCurveTo(-width/2, depth/2, -width/2, depth/2 - radius);
+            desktopShape.lineTo(-width/2, -depth/2 + radius);
+            desktopShape.quadraticCurveTo(-width/2, -depth/2, -width/2 + radius, -depth/2);
+            
+            const extrudeSettings = { depth: 0.15, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 5 };
+            const desktop = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(desktopShape, extrudeSettings),
+                materials.wood
+            );
+            desktop.rotation.x = -Math.PI / 2;
+            desktop.position.set(0, 1.5, -7);
+            desktop.castShadow = true;
+            desktop.receiveShadow = true;
+            deskGroup.add(desktop);
+            
+            // Rounded legs
+            for (let x of [-2.3, 2.3]) {
+                for (let z of [-1, 1]) {
+                    const leg = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.12, 0.1, 1.5, 16),
+                        materials.darkWood
+                    );
+                    leg.position.set(x, 0.75, -7 + z);
+                    leg.castShadow = true;
+                    deskGroup.add(leg);
+                }
+            }
+            
+            // Rounded drawer with curved front
+            const drawerShape = new THREE.Shape();
+            const dw = 1.5, dd = 2.2, dr = 0.15;
+            drawerShape.moveTo(-dw/2 + dr, -dd/2);
+            drawerShape.lineTo(dw/2 - dr, -dd/2);
+            drawerShape.quadraticCurveTo(dw/2, -dd/2, dw/2, -dd/2 + dr);
+            drawerShape.lineTo(dw/2, dd/2 - dr);
+            drawerShape.quadraticCurveTo(dw/2, dd/2, dw/2 - dr, dd/2);
+            drawerShape.lineTo(-dw/2 + dr, dd/2);
+            drawerShape.quadraticCurveTo(-dw/2, dd/2, -dw/2, dd/2 - dr);
+            drawerShape.lineTo(-dw/2, -dd/2 + dr);
+            drawerShape.quadraticCurveTo(-dw/2, -dd/2, -dw/2 + dr, -dd/2);
+            
+            const drawer = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(drawerShape, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }),
+                materials.darkWood
+            );
+            drawer.rotation.x = -Math.PI / 2;
+            drawer.position.set(-1.5, 1.2, -7);
+            drawer.castShadow = true;
+            deskGroup.add(drawer);
+            
+            // Drawer handle - rounded sphere
+            const handle = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.8, roughness: 0.2 })
+            );
+            handle.position.set(-1.5, 1.35, -5.7);
+            deskGroup.add(handle);
+            
+            clickableObjects.push(deskGroup);
+            return deskGroup;
+        }
+        
+        // Chair
+        function createChair() {
+            const chairGroup = new THREE.Group();
+            chairGroup.userData = { name: 'Comfy Chair', description: 'Perfect for long study sessions 📚' };
+            
+            // Rounded seat with cushion effect
+            const seatGeometry = new THREE.BoxGeometry(1.2, 0.25, 1.2, 8, 8, 8);
+            const positionAttribute = seatGeometry.attributes.position;
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const y = positionAttribute.getY(i);
+                if (y > 0) {
+                    const x = positionAttribute.getX(i);
+                    const z = positionAttribute.getZ(i);
+                    const distFromCenter = Math.sqrt(x * x + z * z) / 0.85;
+                    const bulge = Math.max(0, 0.08 * (1 - distFromCenter));
+                    positionAttribute.setY(i, y + bulge);
+                }
+            }
+            positionAttribute.needsUpdate = true;
+            seatGeometry.computeVertexNormals();
+            
+            const seat = new THREE.Mesh(seatGeometry, materials.fabric);
+            seat.position.set(0, 1, 0);
+            seat.castShadow = true;
+            chairGroup.add(seat);
+            
+            // Curved backrest
+            const backrestGeometry = new THREE.BoxGeometry(1.2, 1.5, 0.25, 8, 16, 8);
+            const backPositions = backrestGeometry.attributes.position;
+            for (let i = 0; i < backPositions.count; i++) {
+                const y = backPositions.getY(i);
+                const z = backPositions.getZ(i);
+                if (z > 0) {
+                    const curve = (y / 1.5) * 0.15;
+                    backPositions.setZ(i, z + curve);
+                    
+                    // Add cushion bulge
+                    const x = backPositions.getX(i);
+                    const distFromCenter = Math.sqrt(x * x + y * y) / 1.2;
+                    const bulge = Math.max(0, 0.06 * (1 - distFromCenter));
+                    backPositions.setZ(i, z + curve + bulge);
+                }
+            }
+            backPositions.needsUpdate = true;
+            backrestGeometry.computeVertexNormals();
+            
+            const backrest = new THREE.Mesh(backrestGeometry, materials.fabric);
+            backrest.position.set(0, 1.75, 0.6);
+            backrest.castShadow = true;
+            chairGroup.add(backrest);
+            
+            // Rounded legs with tapered design
+            for (let x of [-0.5, 0.5]) {
+                for (let z of [-0.5, 0.5]) {
+                    const leg = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.06, 0.1, 1, 12),
+                        materials.darkWood
+                    );
+                    leg.position.set(x, 0.5, z);
+                    leg.castShadow = true;
+                    chairGroup.add(leg);
+                    
+                    // Add rounded foot cap
+                    const footCap = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.1, 12, 12),
+                        materials.darkWood
+                    );
+                    footCap.scale.y = 0.5;
+                    footCap.position.set(x, 0.05, z);
+                    chairGroup.add(footCap);
+                }
+            }
+            
+            // Position chair beside desk, facing toward it (backrest away from desk)
+            chairGroup.position.set(0, 0, -5.5);
+            
+            clickableObjects.push(chairGroup);
+            return chairGroup;
+        }
+        
+        // Laptop
+        function createLaptop() {
+            const laptopGroup = new THREE.Group();
+            laptopGroup.userData = { name: 'Laptop', description: 'Currently playing lofi beats 🎵' };
+            
+            // Rounded base
+            const baseShape = new THREE.Shape();
+            const lw = 1.2, ld = 0.9, lr = 0.15;
+            baseShape.moveTo(-lw/2 + lr, -ld/2);
+            baseShape.lineTo(lw/2 - lr, -ld/2);
+            baseShape.quadraticCurveTo(lw/2, -ld/2, lw/2, -ld/2 + lr);
+            baseShape.lineTo(lw/2, ld/2 - lr);
+            baseShape.quadraticCurveTo(lw/2, ld/2, lw/2 - lr, ld/2);
+            baseShape.lineTo(-lw/2 + lr, ld/2);
+            baseShape.quadraticCurveTo(-lw/2, ld/2, -lw/2, ld/2 - lr);
+            baseShape.lineTo(-lw/2, -ld/2 + lr);
+            baseShape.quadraticCurveTo(-lw/2, -ld/2, -lw/2 + lr, -ld/2);
+            
+            const base = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(baseShape, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01, bevelSegments: 3 }),
+                materials.darkWood
+            );
+            base.rotation.x = -Math.PI / 2;
+            base.position.set(0.5, 1.55, -7);
+            base.castShadow = true;
+            laptopGroup.add(base);
+            
+            // Rounded keyboard
+            const keyboardShape = new THREE.Shape();
+            const kw = 1.1, kd = 0.7, kr = 0.1;
+            keyboardShape.moveTo(-kw/2 + kr, -kd/2);
+            keyboardShape.lineTo(kw/2 - kr, -kd/2);
+            keyboardShape.quadraticCurveTo(kw/2, -kd/2, kw/2, -kd/2 + kr);
+            keyboardShape.lineTo(kw/2, kd/2 - kr);
+            keyboardShape.quadraticCurveTo(kw/2, kd/2, kw/2 - kr, kd/2);
+            keyboardShape.lineTo(-kw/2 + kr, kd/2);
+            keyboardShape.quadraticCurveTo(-kw/2, kd/2, -kw/2, kd/2 - kr);
+            keyboardShape.lineTo(-kw/2, -kd/2 + kr);
+            keyboardShape.quadraticCurveTo(-kw/2, -kd/2, -kw/2 + kr, -kd/2);
+            
+            const keyboard = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(keyboardShape, { depth: 0.02, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 2 }),
+                new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
+            );
+            keyboard.rotation.x = -Math.PI / 2;
+            keyboard.position.set(0.5, 1.62, -7);
+            laptopGroup.add(keyboard);
+            
+            // Rounded screen with curved display
+            const screenShape = new THREE.Shape();
+            const sw = 1.2, sh = 0.8, sr = 0.08;
+            screenShape.moveTo(-sw/2 + sr, -sh/2);
+            screenShape.lineTo(sw/2 - sr, -sh/2);
+            screenShape.quadraticCurveTo(sw/2, -sh/2, sw/2, -sh/2 + sr);
+            screenShape.lineTo(sw/2, sh/2 - sr);
+            screenShape.quadraticCurveTo(sw/2, sh/2, sw/2 - sr, sh/2);
+            screenShape.lineTo(-sw/2 + sr, sh/2);
+            screenShape.quadraticCurveTo(-sw/2, sh/2, -sw/2, sh/2 - sr);
+            screenShape.lineTo(-sw/2, -sh/2 + sr);
+            screenShape.quadraticCurveTo(-sw/2, -sh/2, -sw/2 + sr, -sh/2);
+            
+            const screen = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(screenShape, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }),
+                materials.screen
+            );
+            screen.position.set(0.5, 1.95, -7.45);
+            screen.rotation.x = -0.2;
+            screen.castShadow = true;
+            laptopGroup.add(screen);
+            
+            clickableObjects.push(laptopGroup);
+            return laptopGroup;
+        }
+        
+        // Books stack
+        function createBooks() {
+            const booksGroup = new THREE.Group();
+            booksGroup.userData = { name: 'Book Stack', description: 'Required reading... eventually 📖' };
+            
+            const colors = [0xdc143c, 0x4169e1, 0x32cd32, 0xff8c00, 0x9370db];
+            const heights = [0.15, 0.12, 0.18, 0.14, 0.16];
+            
+            let currentHeight = 1.55;
+            
+            for (let i = 0; i < 5; i++) {
+                // Create rounded book with beveled edges
+                const bookShape = new THREE.Shape();
+                const bw = 0.6, bd = 0.8, br = 0.05;
+                bookShape.moveTo(-bw/2 + br, -bd/2);
+                bookShape.lineTo(bw/2 - br, -bd/2);
+                bookShape.quadraticCurveTo(bw/2, -bd/2, bw/2, -bd/2 + br);
+                bookShape.lineTo(bw/2, bd/2 - br);
+                bookShape.quadraticCurveTo(bw/2, bd/2, bw/2 - br, bd/2);
+                bookShape.lineTo(-bw/2 + br, bd/2);
+                bookShape.quadraticCurveTo(-bw/2, bd/2, -bw/2, bd/2 - br);
+                bookShape.lineTo(-bw/2, -bd/2 + br);
+                bookShape.quadraticCurveTo(-bw/2, -bd/2, -bw/2 + br, -bd/2);
+                
+                const book = new THREE.Mesh(
+                    new THREE.ExtrudeGeometry(bookShape, { 
+                        depth: heights[i], 
+                        bevelEnabled: true, 
+                        bevelThickness: 0.01, 
+                        bevelSize: 0.01, 
+                        bevelSegments: 2 
+                    }),
+                    new THREE.MeshStandardMaterial({ 
+                        color: colors[i],
+                        roughness: 0.6
+                    })
+                );
+                book.rotation.x = -Math.PI / 2;
+                const rotation = (Math.random() - 0.5) * 0.2;
+                book.rotation.z = rotation;
+                book.position.set(-1.5 + Math.random() * 0.1, currentHeight + heights[i] / 2, -7 + Math.random() * 0.1);
+                book.castShadow = true;
+                booksGroup.add(book);
+                currentHeight += heights[i];
+            }
+            
+            clickableObjects.push(booksGroup);
+            return booksGroup;
+        }
+        
+        // Desk lamp (with on/off toggle)
+        let lampIsOn = true;
+        let lampLight = null;
+        let lampHead = null;
+        let lampRim = null;
+        
+        function createDeskLamp() {
+            const lampGroup = new THREE.Group();
+            lampGroup.userData = { 
+                name: 'Desk Lamp', 
+                description: 'Click to turn ON/OFF 💡',
+                isLamp: true 
+            };
+            
+            // Rounded base
+            const base = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.2, 0.15, 0.08, 32),
+                materials.darkWood
+            );
+            base.position.set(1.8, 1.58, -7);
+            base.castShadow = true;
+            lampGroup.add(base);
+            
+            // Smooth curved pole (using spheres for joints)
+            const poleSegments = 6;
+            const poleHeight = 0.8;
+            for (let i = 0; i < poleSegments; i++) {
+                const segment = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.035, 0.035, poleHeight / poleSegments, 12),
+                    materials.darkWood
+                );
+                segment.position.set(1.8, 1.6 + (i * poleHeight / poleSegments) + (poleHeight / poleSegments / 2), -7);
+                segment.castShadow = true;
+                lampGroup.add(segment);
+            }
+            
+            // Rounded joint sphere
+            const joint = new THREE.Mesh(
+                new THREE.SphereGeometry(0.06, 16, 16),
+                materials.darkWood
+            );
+            joint.position.set(1.8, 2.4, -7);
+            lampGroup.add(joint);
+            
+            // Smooth lamp head with rounded edges
+            const lampHeadGeometry = new THREE.SphereGeometry(0.3, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            lampHead = new THREE.Mesh(
+                lampHeadGeometry,
+                materials.lamp.clone()
+            );
+            lampHead.position.set(1.8, 2.45, -7);
+            lampHead.rotation.x = Math.PI;
+            lampHead.castShadow = true;
+            lampGroup.add(lampHead);
+            
+            // Add rim to lamp head
+            lampRim = new THREE.Mesh(
+                new THREE.TorusGeometry(0.3, 0.02, 16, 32),
+                materials.lamp.clone()
+            );
+            lampRim.position.set(1.8, 2.15, -7);
+            lampRim.rotation.x = Math.PI / 2;
+            lampGroup.add(lampRim);
+            
+            // Light source
+            lampLight = new THREE.PointLight(0xffd700, 0.5, 5);
+            lampLight.position.set(1.8, 2.2, -7);
+            lampLight.castShadow = true;
+            lampGroup.add(lampLight);
+            
+            clickableObjects.push(lampGroup);
+            return lampGroup;
+        }
+        
+        // Toggle lamp on/off
+        function toggleLamp() {
+            lampIsOn = !lampIsOn;
+            
+            if (lampIsOn) {
+                // Turn lamp ON
+                lampLight.intensity = 0.5;
+                lampHead.material.emissive.setHex(0xffd700);
+                lampHead.material.emissiveIntensity = 0.3;
+                lampRim.material.emissive.setHex(0xffd700);
+                lampRim.material.emissiveIntensity = 0.3;
+                
+                // Restore normal lighting
+                ambientLight.intensity = 0.6;
+                sunLight.intensity = 0.8;
+                fillLight.intensity = 0.4;
+                scene.background.setHex(0xf5e6d3);
+                scene.fog.color.setHex(0xf5e6d3);
+                
+            } else {
+                // Turn lamp OFF
+                lampLight.intensity = 0;
+                lampHead.material.emissive.setHex(0x000000);
+                lampHead.material.emissiveIntensity = 0;
+                lampRim.material.emissive.setHex(0x000000);
+                lampRim.material.emissiveIntensity = 0;
+                
+                // Make room dark
+                ambientLight.intensity = 0.15;
+                sunLight.intensity = 0.2;
+                fillLight.intensity = 0.05;
+                scene.background.setHex(0x1a1a2e);
+                scene.fog.color.setHex(0x1a1a2e);
+            }
+        }
+        
+        // Plant
+        function createPlant() {
+            const plantGroup = new THREE.Group();
+            plantGroup.userData = { name: 'Potted Plant', description: 'Brings life to the room 🌿' };
+            
+            // Rounded pot with organic shape
+            const potGeometry = new THREE.SphereGeometry(0.22, 16, 16, 0, Math.PI * 2, 0, Math.PI / 1.5);
+            const pot = new THREE.Mesh(potGeometry, materials.pot);
+            pot.position.set(4, 0.15, -8.5);
+            pot.castShadow = true;
+            plantGroup.add(pot);
+            
+            // Smooth rim
+            const rim = new THREE.Mesh(
+                new THREE.TorusGeometry(0.22, 0.03, 12, 24),
+                materials.pot
+            );
+            rim.position.set(4, 0.3, -8.5);
+            rim.rotation.x = Math.PI / 2;
+            plantGroup.add(rim);
+            
+            // Soil with rounded top
+            const soil = new THREE.Mesh(
+                new THREE.SphereGeometry(0.2, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+                new THREE.MeshStandardMaterial({ color: 0x4a3728 })
+            );
+            soil.position.set(4, 0.3, -8.5);
+            plantGroup.add(soil);
+            
+            // More organic rounded leaves
+            for (let i = 0; i < 10; i++) {
+                // Create elongated sphere for leaf
+                const leafGeometry = new THREE.SphereGeometry(0.12, 8, 8);
+                const leaf = new THREE.Mesh(leafGeometry, materials.plant);
+                leaf.scale.set(0.6, 1.8, 0.4); // Elongate to make leaf shape
+                
+                const angle = (i / 10) * Math.PI * 2;
+                const radius = 0.15 + Math.random() * 0.15;
+                const height = 0.5 + Math.random() * 0.4;
+                
+                leaf.position.set(
+                    4 + Math.cos(angle) * radius,
+                    height,
+                    -8.5 + Math.sin(angle) * radius
+                );
+                
+                // Rotate leaf to point outward and up
+                leaf.rotation.z = -angle - Math.PI / 2;
+                leaf.rotation.y = Math.random() * 0.5;
+                leaf.rotation.x = -0.3 + Math.random() * 0.2;
+                
+                leaf.castShadow = true;
+                plantGroup.add(leaf);
+            }
+            
+            // Add some small sphere berries/buds
+            for (let i = 0; i < 5; i++) {
+                const berry = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.04, 8, 8),
+                    new THREE.MeshStandardMaterial({ color: 0xff6b6b })
+                );
+                const angle = (i / 5) * Math.PI * 2;
+                berry.position.set(
+                    4 + Math.cos(angle) * 0.2,
+                    0.6 + Math.random() * 0.2,
+                    -8.5 + Math.sin(angle) * 0.2
+                );
+                plantGroup.add(berry);
+            }
+            
+            clickableObjects.push(plantGroup);
+            return plantGroup;
+        }
+        
+        // Bookshelf
+        function createBookshelf() {
+            const shelfGroup = new THREE.Group();
+            shelfGroup.userData = { name: 'Bookshelf', description: 'Full of knowledge and knick-knacks 📚' };
+            
+            const shelfX = -7;
+            const shelfZ = -8;
+            
+            // Rounded sides
+            for (let x of [0, 2]) {
+                const side = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.2, 4, 1.5, 1, 8, 8),
+                    materials.darkWood
+                );
+                // Round the front edges
+                const sidePositions = side.geometry.attributes.position;
+                for (let i = 0; i < sidePositions.count; i++) {
+                    const posZ = sidePositions.getZ(i);
+                    const posY = sidePositions.getY(i);
+                    if (posZ > 0.7) {
+                        const distFromEdge = Math.abs(posZ - 0.75);
+                        const roundAmount = Math.max(0, 0.05 * (1 - distFromEdge / 0.1));
+                        sidePositions.setX(i, sidePositions.getX(i) - roundAmount);
+                    }
+                }
+                sidePositions.needsUpdate = true;
+                side.geometry.computeVertexNormals();
+                
+                side.position.set(shelfX + x, 2, shelfZ);
+                side.castShadow = true;
+                shelfGroup.add(side);
+            }
+            
+            // Rounded shelves with curved front edge
+            for (let i = 0; i < 5; i++) {
+                const shelfShape = new THREE.Shape();
+                const sw = 2.3, sd = 1.5, sr = 0.08;
+                shelfShape.moveTo(-sw/2, -sd/2);
+                shelfShape.lineTo(sw/2, -sd/2);
+                shelfShape.lineTo(sw/2, sd/2 - sr);
+                shelfShape.quadraticCurveTo(sw/2, sd/2, sw/2 - sr, sd/2);
+                shelfShape.lineTo(-sw/2 + sr, sd/2);
+                shelfShape.quadraticCurveTo(-sw/2, sd/2, -sw/2, sd/2 - sr);
+                shelfShape.lineTo(-sw/2, -sd/2);
+                
+                const shelf = new THREE.Mesh(
+                    new THREE.ExtrudeGeometry(shelfShape, { 
+                        depth: 0.12, 
+                        bevelEnabled: true, 
+                        bevelThickness: 0.02, 
+                        bevelSize: 0.02, 
+                        bevelSegments: 3 
+                    }),
+                    materials.wood
+                );
+                shelf.rotation.x = -Math.PI / 2;
+                shelf.position.set(shelfX + 1, i * 1, shelfZ);
+                shelf.castShadow = true;
+                shelf.receiveShadow = true;
+                shelfGroup.add(shelf);
+            }
+            
+            // Rounded books on shelves
+            for (let shelfLevel = 1; shelfLevel < 4; shelfLevel++) {
+                for (let bookNum = 0; bookNum < 6; bookNum++) {
+                    const bookHeight = 0.6 + Math.random() * 0.3;
+                    const bookWidth = 0.12;
+                    const bookDepth = 0.25;
+                    
+                    // Create rounded book
+                    const bookShape = new THREE.Shape();
+                    const br = 0.03;
+                    bookShape.moveTo(-bookWidth/2 + br, -bookDepth/2);
+                    bookShape.lineTo(bookWidth/2 - br, -bookDepth/2);
+                    bookShape.quadraticCurveTo(bookWidth/2, -bookDepth/2, bookWidth/2, -bookDepth/2 + br);
+                    bookShape.lineTo(bookWidth/2, bookDepth/2 - br);
+                    bookShape.quadraticCurveTo(bookWidth/2, bookDepth/2, bookWidth/2 - br, bookDepth/2);
+                    bookShape.lineTo(-bookWidth/2 + br, bookDepth/2);
+                    bookShape.quadraticCurveTo(-bookWidth/2, bookDepth/2, -bookWidth/2, bookDepth/2 - br);
+                    bookShape.lineTo(-bookWidth/2, -bookDepth/2 + br);
+                    bookShape.quadraticCurveTo(-bookWidth/2, -bookDepth/2, -bookWidth/2 + br, -bookDepth/2);
+                    
+                    const book = new THREE.Mesh(
+                        new THREE.ExtrudeGeometry(bookShape, { 
+                            depth: bookHeight, 
+                            bevelEnabled: true, 
+                            bevelThickness: 0.01, 
+                            bevelSize: 0.01 
+                        }),
+                        new THREE.MeshStandardMaterial({ 
+                            color: Math.random() * 0xffffff,
+                            roughness: 0.7
+                        })
+                    );
+                    book.rotation.x = -Math.PI / 2;
+                    book.position.set(
+                        shelfX + 0.3 + bookNum * 0.3,
+                        shelfLevel * 1 + bookHeight / 2 + 0.05,
+                        shelfZ + (Math.random() - 0.5) * 0.5
+                    );
+                    book.rotation.z = (Math.random() - 0.5) * 0.3;
+                    book.castShadow = true;
+                    shelfGroup.add(book);
+                }
+            }
+            
+            clickableObjects.push(shelfGroup);
+            return shelfGroup;
+        }
+        
+        // Rug
+        function createRug() {
+            const rugGroup = new THREE.Group();
+            rugGroup.userData = { name: 'Cozy Rug', description: 'Soft and warm underfoot 🧶' };
+            
+            // Create rounded rug shape
+            const rugShape = new THREE.Shape();
+            const rw = 4, rd = 3, rr = 0.4;
+            rugShape.moveTo(-rw/2 + rr, -rd/2);
+            rugShape.lineTo(rw/2 - rr, -rd/2);
+            rugShape.quadraticCurveTo(rw/2, -rd/2, rw/2, -rd/2 + rr);
+            rugShape.lineTo(rw/2, rd/2 - rr);
+            rugShape.quadraticCurveTo(rw/2, rd/2, rw/2 - rr, rd/2);
+            rugShape.lineTo(-rw/2 + rr, rd/2);
+            rugShape.quadraticCurveTo(-rw/2, rd/2, -rw/2, rd/2 - rr);
+            rugShape.lineTo(-rw/2, -rd/2 + rr);
+            rugShape.quadraticCurveTo(-rw/2, -rd/2, -rw/2 + rr, -rd/2);
+            
+            const rugGeometry = new THREE.ShapeGeometry(rugShape);
+            const rug = new THREE.Mesh(
+                rugGeometry,
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xcd5c5c,
+                    roughness: 0.95
+                })
+            );
+            rug.rotation.x = -Math.PI / 2;
+            rug.position.set(0, 0.01, -6);
+            rug.receiveShadow = true;
+            rugGroup.add(rug);
+            
+            // Rounded pattern with softer edges
+            const patternShape = new THREE.Shape();
+            const pw = 3.5, pd = 2.5, pr = 0.3;
+            patternShape.moveTo(-pw/2 + pr, -pd/2);
+            patternShape.lineTo(pw/2 - pr, -pd/2);
+            patternShape.quadraticCurveTo(pw/2, -pd/2, pw/2, -pd/2 + pr);
+            patternShape.lineTo(pw/2, pd/2 - pr);
+            patternShape.quadraticCurveTo(pw/2, pd/2, pw/2 - pr, pd/2);
+            patternShape.lineTo(-pw/2 + pr, pd/2);
+            patternShape.quadraticCurveTo(-pw/2, pd/2, -pw/2, pd/2 - pr);
+            patternShape.lineTo(-pw/2, -pd/2 + pr);
+            patternShape.quadraticCurveTo(-pw/2, -pd/2, -pw/2 + pr, -pd/2);
+            
+            const pattern = new THREE.Mesh(
+                new THREE.ShapeGeometry(patternShape),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x8b4513,
+                    roughness: 0.95
+                })
+            );
+            pattern.rotation.x = -Math.PI / 2;
+            pattern.position.set(0, 0.02, -6);
+            rugGroup.add(pattern);
+            
+            // Add some decorative rounded circles
+            for (let i = 0; i < 4; i++) {
+                const circle = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.15, 16),
+                    new THREE.MeshStandardMaterial({ 
+                        color: 0xff6b6b,
+                        roughness: 0.95
+                    })
+                );
+                circle.rotation.x = -Math.PI / 2;
+                const angle = (i / 4) * Math.PI * 2;
+                circle.position.set(
+                    Math.cos(angle) * 1.2,
+                    0.03,
+                    -6 + Math.sin(angle) * 0.8
+                );
+                rugGroup.add(circle);
+            }
+            
+            clickableObjects.push(rugGroup);
+            return rugGroup;
+        }
+        
+        // Coffee mug
+        function createMug() {
+            const mugGroup = new THREE.Group();
+            mugGroup.userData = { name: 'Coffee Mug', description: 'Fuel for late-night studying ☕' };
+            
+            // Mug body
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.12, 0.1, 0.25, 16),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xffffff,
+                    roughness: 0.3
+                })
+            );
+            body.position.set(-0.8, 1.68, -6.8);
+            body.castShadow = true;
+            mugGroup.add(body);
+            
+            // Coffee inside
+            const coffee = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.11, 0.11, 0.02, 16),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x6f4e37,
+                    roughness: 0.2
+                })
+            );
+            coffee.position.set(-0.8, 1.8, -6.8);
+            mugGroup.add(coffee);
+            
+            // Handle
+            const handleGeometry = new THREE.TorusGeometry(0.08, 0.02, 8, 16, Math.PI);
+            const handle = new THREE.Mesh(
+                handleGeometry,
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xffffff,
+                    roughness: 0.3
+                })
+            );
+            handle.position.set(-0.7, 1.68, -6.8);
+            handle.rotation.y = Math.PI / 2;
+            handle.castShadow = true;
+            mugGroup.add(handle);
+            
+            clickableObjects.push(mugGroup);
+            return mugGroup;
+        }
+        
+        // Notebook with todo list
+        function createNotebook() {
+            const notebookGroup = new THREE.Group();
+            notebookGroup.userData = { 
+                name: 'Study Notebook', 
+                description: 'Click to open your todo list! 📝',
+                isNotebook: true 
+            };
+            
+            // Create rounded notebook cover
+            const coverShape = new THREE.Shape();
+            const nw = 0.8, nh = 1.1, nr = 0.08;
+            coverShape.moveTo(-nw/2 + nr, -nh/2);
+            coverShape.lineTo(nw/2 - nr, -nh/2);
+            coverShape.quadraticCurveTo(nw/2, -nh/2, nw/2, -nh/2 + nr);
+            coverShape.lineTo(nw/2, nh/2 - nr);
+            coverShape.quadraticCurveTo(nw/2, nh/2, nw/2 - nr, nh/2);
+            coverShape.lineTo(-nw/2 + nr, nh/2);
+            coverShape.quadraticCurveTo(-nw/2, nh/2, -nw/2, nh/2 - nr);
+            coverShape.lineTo(-nw/2, -nh/2 + nr);
+            coverShape.quadraticCurveTo(-nw/2, -nh/2, -nw/2 + nr, -nh/2);
+            
+            // Front cover
+            const frontCover = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(coverShape, { 
+                    depth: 0.02, 
+                    bevelEnabled: true, 
+                    bevelThickness: 0.01, 
+                    bevelSize: 0.01, 
+                    bevelSegments: 2 
+                }),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x8b4513,
+                    roughness: 0.7
+                })
+            );
+            frontCover.rotation.x = -Math.PI / 2;
+            frontCover.rotation.z = Math.PI * 0.05;
+            frontCover.position.set(-0.2, 1.58, -6.3);
+            frontCover.castShadow = true;
+            notebookGroup.add(frontCover);
+            
+            // Pages (white, slightly smaller)
+            const pagesShape = new THREE.Shape();
+            const pw = 0.75, ph = 1.05, pr = 0.06;
+            pagesShape.moveTo(-pw/2 + pr, -ph/2);
+            pagesShape.lineTo(pw/2 - pr, -ph/2);
+            pagesShape.quadraticCurveTo(pw/2, -ph/2, pw/2, -ph/2 + pr);
+            pagesShape.lineTo(pw/2, ph/2 - pr);
+            pagesShape.quadraticCurveTo(pw/2, ph/2, pw/2 - pr, ph/2);
+            pagesShape.lineTo(-pw/2 + pr, ph/2);
+            pagesShape.quadraticCurveTo(-pw/2, ph/2, -pw/2, ph/2 - pr);
+            pagesShape.lineTo(-pw/2, -ph/2 + pr);
+            pagesShape.quadraticCurveTo(-pw/2, -ph/2, -pw/2 + pr, -ph/2);
+            
+            const pages = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(pagesShape, { 
+                    depth: 0.08, 
+                    bevelEnabled: false 
+                }),
+                materials.paper
+            );
+            pages.rotation.x = -Math.PI / 2;
+            pages.rotation.z = Math.PI * 0.05;
+            pages.position.set(-0.2, 1.6, -6.3);
+            notebookGroup.add(pages);
+            
+            // Add subtle label on cover
+            const labelGeometry = new THREE.CircleGeometry(0.15, 16);
+            const label = new THREE.Mesh(
+                labelGeometry,
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xffd700,
+                    roughness: 0.5
+                })
+            );
+            label.rotation.x = -Math.PI / 2;
+            label.position.set(-0.2, 1.61, -6.3);
+            notebookGroup.add(label);
+            
+            // Add decorative lines on label
+            for (let i = 0; i < 3; i++) {
+                const line = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.18, 0.01, 0.02),
+                    new THREE.MeshStandardMaterial({ color: 0x8b4513 })
+                );
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(-0.2, 1.615, -6.3 + (i - 1) * 0.05);
+                notebookGroup.add(line);
+            }
+            
+            // Pen next to notebook
+            const penBody = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x4169e1,
+                    roughness: 0.4,
+                    metalness: 0.3
+                })
+            );
+            penBody.rotation.z = Math.PI / 2;
+            penBody.rotation.y = Math.PI * 0.3;
+            penBody.position.set(-0.5, 1.58, -6.5);
+            penBody.castShadow = true;
+            notebookGroup.add(penBody);
+            
+            // Pen tip
+            const penTip = new THREE.Mesh(
+                new THREE.ConeGeometry(0.015, 0.05, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x000000,
+                    roughness: 0.8
+                })
+            );
+            penTip.rotation.z = Math.PI / 2;
+            penTip.rotation.y = Math.PI * 0.3;
+            penTip.position.set(-0.3, 1.58, -6.43);
+            notebookGroup.add(penTip);
+            
+            clickableObjects.push(notebookGroup);
+            return notebookGroup;
+        }
+        
+        // Posters/artwork on wall
+        function createWallArt() {
+            const artGroup = new THREE.Group();
+            
+            // Poster 1 - rounded corners
+            const poster1Shape = new THREE.Shape();
+            const p1w = 1.5, p1h = 2, p1r = 0.1;
+            poster1Shape.moveTo(-p1w/2 + p1r, -p1h/2);
+            poster1Shape.lineTo(p1w/2 - p1r, -p1h/2);
+            poster1Shape.quadraticCurveTo(p1w/2, -p1h/2, p1w/2, -p1h/2 + p1r);
+            poster1Shape.lineTo(p1w/2, p1h/2 - p1r);
+            poster1Shape.quadraticCurveTo(p1w/2, p1h/2, p1w/2 - p1r, p1h/2);
+            poster1Shape.lineTo(-p1w/2 + p1r, p1h/2);
+            poster1Shape.quadraticCurveTo(-p1w/2, p1h/2, -p1w/2, p1h/2 - p1r);
+            poster1Shape.lineTo(-p1w/2, -p1h/2 + p1r);
+            poster1Shape.quadraticCurveTo(-p1w/2, -p1h/2, -p1w/2 + p1r, -p1h/2);
+            
+            const poster1 = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(poster1Shape, { 
+                    depth: 0.03, 
+                    bevelEnabled: true, 
+                    bevelThickness: 0.01, 
+                    bevelSize: 0.01, 
+                    bevelSegments: 2 
+                }),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xff69b4,
+                    roughness: 0.8
+                })
+            );
+            poster1.position.set(-3, 3, -9.87);
+            poster1.castShadow = true;
+            poster1.userData = { name: 'Inspirational Poster', description: 'Stay focused! ✨' };
+            artGroup.add(poster1);
+            clickableObjects.push(poster1);
+            
+            // Poster 2 - rounded corners
+            const poster2Shape = new THREE.Shape();
+            const p2w = 1.2, p2h = 1.8, p2r = 0.08;
+            poster2Shape.moveTo(-p2w/2 + p2r, -p2h/2);
+            poster2Shape.lineTo(p2w/2 - p2r, -p2h/2);
+            poster2Shape.quadraticCurveTo(p2w/2, -p2h/2, p2w/2, -p2h/2 + p2r);
+            poster2Shape.lineTo(p2w/2, p2h/2 - p2r);
+            poster2Shape.quadraticCurveTo(p2w/2, p2h/2, p2w/2 - p2r, p2h/2);
+            poster2Shape.lineTo(-p2w/2 + p2r, p2h/2);
+            poster2Shape.quadraticCurveTo(-p2w/2, p2h/2, -p2w/2, p2h/2 - p2r);
+            poster2Shape.lineTo(-p2w/2, -p2h/2 + p2r);
+            poster2Shape.quadraticCurveTo(-p2w/2, -p2h/2, -p2w/2 + p2r, -p2h/2);
+            
+            const poster2 = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(poster2Shape, { 
+                    depth: 0.03, 
+                    bevelEnabled: true, 
+                    bevelThickness: 0.01, 
+                    bevelSize: 0.01, 
+                    bevelSegments: 2 
+                }),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x87ceeb,
+                    roughness: 0.8
+                })
+            );
+            poster2.position.set(3, 3.5, -9.87);
+            poster2.castShadow = true;
+            poster2.userData = { name: 'Music Poster', description: 'Lofi beats to study/relax to 🎶' };
+            artGroup.add(poster2);
+            clickableObjects.push(poster2);
+            
+            return artGroup;
+        }
+        
+        // Digital Clock (3D LED style)
+        function createClock() {
+            const clockGroup = new THREE.Group();
+            clockGroup.userData = { name: 'Digital Clock', description: 'Keeping track of study time! ⏰', isClock: true };
+            
+            // Clock base
+            const base = new THREE.Mesh(
+                new THREE.BoxGeometry(2.0, 0.1, 0.5),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xe0e0e0,
+                    roughness: 0.4,
+                    metalness: 0.3
+                })
+            );
+            base.position.set(0, 4.2, -9.5);
+            base.castShadow = true;
+            clockGroup.add(base);
+            
+            // Support stand
+            const stand = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.08, 0.12, 0.3, 16),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xe0e0e0,
+                    roughness: 0.4,
+                    metalness: 0.3
+                })
+            );
+            stand.position.set(0, 4.05, -9.5);
+            stand.castShadow = true;
+            clockGroup.add(stand);
+            
+            // Create 7-segment display function
+            function createSegment(active = false) {
+                const segment = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.12, 0.04, 0.06),
+                    new THREE.MeshStandardMaterial({ 
+                        color: active ? 0xffffff : 0x000000,
+                        emissive: active ? 0xffaa00 : 0x000000,
+                        emissiveIntensity: active ? 0.9 : 0,
+                        roughness: 0.2,
+                        metalness: 0.1,
+                        transparent: true,
+                        opacity: active ? 1.0 : 0.0
+                    })
+                );
+                segment.visible = active;
+                return segment;
+            }
+            
+            // Digit structure - 7 segments per digit
+            // Segments: top, top-right, bottom-right, bottom, bottom-left, top-left, middle
+            function createDigit(x, y, z) {
+                const digitGroup = new THREE.Group();
+                const segmentLength = 0.12;
+                const segmentThickness = 0.04;
+                const digitHeight = 0.3;
+                const gap = 0.01;
+                
+                // Create all 7 segments (initially off)
+                const segments = [];
+                
+                // Top horizontal (0)
+                const top = createSegment(false);
+                top.position.set(0, digitHeight/2, 0);
+                digitGroup.add(top);
+                segments.push(top);
+                
+                // Top-right vertical (1)
+                const topRight = createSegment(false);
+                topRight.rotation.z = Math.PI / 2;
+                topRight.position.set(segmentLength/2 + gap, digitHeight/4 + gap/2, 0);
+                digitGroup.add(topRight);
+                segments.push(topRight);
+                
+                // Bottom-right vertical (2)
+                const bottomRight = createSegment(false);
+                bottomRight.rotation.z = Math.PI / 2;
+                bottomRight.position.set(segmentLength/2 + gap, -digitHeight/4 - gap/2, 0);
+                digitGroup.add(bottomRight);
+                segments.push(bottomRight);
+                
+                // Bottom horizontal (3)
+                const bottom = createSegment(false);
+                bottom.position.set(0, -digitHeight/2, 0);
+                digitGroup.add(bottom);
+                segments.push(bottom);
+                
+                // Bottom-left vertical (4)
+                const bottomLeft = createSegment(false);
+                bottomLeft.rotation.z = Math.PI / 2;
+                bottomLeft.position.set(-segmentLength/2 - gap, -digitHeight/4 - gap/2, 0);
+                digitGroup.add(bottomLeft);
+                segments.push(bottomLeft);
+                
+                // Top-left vertical (5)
+                const topLeft = createSegment(false);
+                topLeft.rotation.z = Math.PI / 2;
+                topLeft.position.set(-segmentLength/2 - gap, digitHeight/4 + gap/2, 0);
+                digitGroup.add(topLeft);
+                segments.push(topLeft);
+                
+                // Middle horizontal (6)
+                const middle = createSegment(false);
+                middle.position.set(0, 0, 0);
+                digitGroup.add(middle);
+                segments.push(middle);
+                
+                digitGroup.position.set(x, y, z);
+                digitGroup.userData.segments = segments;
+                return digitGroup;
+            }
+            
+            // Create 4 digits for HH:MM format
+            const digit1 = createDigit(-0.5, 4.5, -9.5);
+            const digit2 = createDigit(-0.17, 4.5, -9.5);
+            const digit3 = createDigit(0.17, 4.5, -9.5);
+            const digit4 = createDigit(0.5, 4.5, -9.5);
+            
+            clockGroup.add(digit1);
+            clockGroup.add(digit2);
+            clockGroup.add(digit3);
+            clockGroup.add(digit4);
+            
+            // Colon dots
+            const colonDot1 = new THREE.Mesh(
+                new THREE.SphereGeometry(0.025, 12, 12),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xffffff,
+                    emissive: 0xffaa00,
+                    emissiveIntensity: 0.7
+                })
+            );
+            colonDot1.position.set(0, 4.6, -9.5);
+            clockGroup.add(colonDot1);
+            
+            const colonDot2 = new THREE.Mesh(
+                new THREE.SphereGeometry(0.025, 12, 12),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0xffffff,
+                    emissive: 0xffaa00,
+                    emissiveIntensity: 0.7
+                })
+            );
+            colonDot2.position.set(0, 4.4, -9.5);
+            clockGroup.add(colonDot2);
+            
+            // Store digit references
+            clockGroup.userData.digits = [digit1, digit2, digit3, digit4];
+            
+            clickableObjects.push(clockGroup);
+            return clockGroup;
+        }
+        
+        // Function to update digit segments based on number (0-9)
+        function updateDigit(digitGroup, number) {
+            // Segment patterns for each digit (0-9)
+            // Array represents: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
+            const patterns = {
+                0: [1, 1, 1, 1, 1, 1, 0],
+                1: [0, 1, 1, 0, 0, 0, 0],
+                2: [1, 1, 0, 1, 1, 0, 1],
+                3: [1, 1, 1, 1, 0, 0, 1],
+                4: [0, 1, 1, 0, 0, 1, 1],
+                5: [1, 0, 1, 1, 0, 1, 1],
+                6: [1, 0, 1, 1, 1, 1, 1],
+                7: [1, 1, 1, 0, 0, 0, 0],
+                8: [1, 1, 1, 1, 1, 1, 1],
+                9: [1, 1, 1, 1, 0, 1, 1]
+            };
+            
+            const pattern = patterns[number] || [0, 0, 0, 0, 0, 0, 0];
+            const segments = digitGroup.userData.segments;
+            
+            pattern.forEach((active, index) => {
+                if (segments[index]) {
+                    segments[index].visible = active;
+                    if (active) {
+                        segments[index].material.color.setHex(0xffffff);
+                        segments[index].material.emissive.setHex(0xffaa00);
+                        segments[index].material.emissiveIntensity = 0.9;
+                        segments[index].material.opacity = 1.0;
+                    } else {
+                        segments[index].material.opacity = 0.0;
+                    }
+                }
+            });
+        }
+        
+        // Build the scene
+        scene.add(createRoom());
+        scene.add(createWindow());
+        scene.add(createDesk());
+        scene.add(createChair());
+        scene.add(createLaptop());
+        scene.add(createBooks());
+        scene.add(createDeskLamp());
+        scene.add(createPlant());
+        scene.add(createBookshelf());
+        scene.add(createRug());
+        scene.add(createMug());
+        scene.add(createNotebook());
+        scene.add(createWallArt());
+        scene.add(createClock());
+        
+        // Camera controls (orbit-like behavior)
+        let isDragging = false;
+        let isPanning = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const cameraTarget = new THREE.Vector3(0, 2, -4);
+        const cameraDistance = camera.position.distanceTo(cameraTarget);
+        
+        // Object dragging
+        let draggedObject = null;
+        let dragPlane = new THREE.Plane();
+        let dragOffset = new THREE.Vector3();
+        let dragIntersection = new THREE.Vector3();
+        
+        // Mouse event handlers
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button === 0) { // Left click
+                // Check if clicking on an object
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(clickableObjects, true);
+                
+                if (intersects.length > 0) {
+                    // Find the parent group with userData
+                    let object = intersects[0].object;
+                    while (object && !object.userData.name) {
+                        object = object.parent;
+                    }
+                    
+                    if (object && object.userData.name) {
+                        // Start dragging this object
+                        draggedObject = object;
+                        
+                        // Create a plane at the object's y position
+                        dragPlane.setFromNormalAndCoplanarPoint(
+                            camera.getWorldDirection(dragPlane.normal),
+                            intersects[0].point
+                        );
+                        
+                        // Calculate offset
+                        if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+                            dragOffset.copy(dragIntersection).sub(object.position);
+                        }
+                        
+                        return; // Don't start camera drag
+                    }
+                }
+                
+                isDragging = true;
+            } else if (e.button === 2) { // Right click
+                isPanning = true;
+            }
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            // Update mouse position for raycasting
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Handle object dragging
+            if (draggedObject) {
+                raycaster.setFromCamera(mouse, camera);
+                
+                if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+                    draggedObject.position.copy(dragIntersection.sub(dragOffset));
+                }
+                
+                return; // Don't rotate camera while dragging object
+            }
+            
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                // Rotate camera around target
+                const rotationSpeed = 0.005;
+                const theta = deltaX * rotationSpeed;
+                const phi = deltaY * rotationSpeed;
+                
+                // Calculate new position
+                const offset = camera.position.clone().sub(cameraTarget);
+                const spherical = new THREE.Spherical().setFromVector3(offset);
+                
+                spherical.theta -= theta;
+                spherical.phi -= phi;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                
+                offset.setFromSpherical(spherical);
+                camera.position.copy(cameraTarget).add(offset);
+                camera.lookAt(cameraTarget);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+            
+            if (isPanning) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                const panSpeed = 0.01;
+                const right = new THREE.Vector3();
+                const up = new THREE.Vector3(0, 1, 0);
+                camera.getWorldDirection(right);
+                right.cross(up).normalize();
+                
+                const panOffset = new THREE.Vector3();
+                panOffset.add(right.multiplyScalar(-deltaX * panSpeed));
+                panOffset.add(up.multiplyScalar(deltaY * panSpeed));
+                
+                camera.position.add(panOffset);
+                cameraTarget.add(panOffset);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => {
+            isDragging = false;
+            isPanning = false;
+            draggedObject = null;
+        });
+        
+        renderer.domElement.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+        
+        // Zoom with mouse wheel
+        renderer.domElement.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.001;
+            const delta = e.deltaY * zoomSpeed;
+            
+            const offset = camera.position.clone().sub(cameraTarget);
+            const distance = offset.length();
+            
+            const newDistance = Math.max(2, Math.min(20, distance + delta * distance));
+            offset.normalize().multiplyScalar(newDistance);
+            camera.position.copy(cameraTarget).add(offset);
+        });
+        
+        // Object clicking
+        let clickStartPos = { x: 0, y: 0 };
+        
+        document.addEventListener('mousedown', (e) => {
+            clickStartPos = { x: e.clientX, y: e.clientY };
+        });
+        
+        renderer.domElement.addEventListener('click', (e) => {
+            // Check if this was a drag vs a click
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - clickStartPos.x, 2) + 
+                Math.pow(e.clientY - clickStartPos.y, 2)
+            );
+            
+            if (distance > 5) return; // Was a drag, not a click
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(clickableObjects, true);
+            
+            if (intersects.length > 0) {
+                // Find the parent group with userData
+                let object = intersects[0].object;
+                while (object && !object.userData.name) {
+                    object = object.parent;
+                }
+                
+                if (object && object.userData.name) {
+                    // Check if it's the notebook
+                    if (object.userData.isNotebook) {
+                        openTodoList();
+                        showObjectInfo(object.userData.name, object.userData.description);
+                    }
+                    // Check if it's the lamp
+                    else if (object.userData.isLamp) {
+                        toggleLamp();
+                        const status = lampIsOn ? 'ON' : 'OFF';
+                        showObjectInfo(object.userData.name, `Lamp is now ${status} 💡`);
+                    } else {
+                        showObjectInfo(object.userData.name, object.userData.description);
+                        // Animate object (bounce)
+                        animateObject(object);
+                    }
+                }
+            } else {
+                hideObjectInfo();
+            }
+        });
+        
+        // Show object info
+        function showObjectInfo(name, description) {
+            const infoDiv = document.getElementById('object-info');
+            infoDiv.innerHTML = `<strong>${name}</strong>: ${description}`;
+            infoDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                hideObjectInfo();
+            }, 3000);
+        }
+        
+        function hideObjectInfo() {
+            const infoDiv = document.getElementById('object-info');
+            infoDiv.style.display = 'none';
+        }
+        
+        // Animate object on click
+        const animatedObjects = new Map();
+        
+        function animateObject(object) {
+            const originalY = object.position.y;
+            animatedObjects.set(object, {
+                startY: originalY,
+                time: 0
+            });
+        }
+        
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update digital clock display
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            
+            // Find clock and update digits
+            scene.traverse((object) => {
+                if (object.userData && object.userData.isClock && object.userData.digits) {
+                    const digits = object.userData.digits;
+                    
+                    // Convert to HH:MM format
+                    const h1 = Math.floor(hours / 10);
+                    const h2 = hours % 10;
+                    const m1 = Math.floor(minutes / 10);
+                    const m2 = minutes % 10;
+                    
+                    updateDigit(digits[0], h1);
+                    updateDigit(digits[1], h2);
+                    updateDigit(digits[2], m1);
+                    updateDigit(digits[3], m2);
+                }
+            });
+            
+            // Update animated objects
+            animatedObjects.forEach((data, object) => {
+                data.time += 0.1;
+                const bounce = Math.sin(data.time) * 0.1;
+                object.position.y = data.startY + bounce;
+                
+                if (data.time > Math.PI) {
+                    object.position.y = data.startY;
+                    animatedObjects.delete(object);
+                }
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // ============================================
+        // TODO LIST FUNCTIONALITY
+        // ============================================
+        
+        // Load todos from localStorage
+        let todos = JSON.parse(localStorage.getItem('lofi-todos') || '[]');
+        
+        function saveTodos() {
+            localStorage.setItem('lofi-todos', JSON.stringify(todos));
+        }
+        
+        function renderTodos() {
+            const todoList = document.getElementById('todo-list');
+            const emptyState = document.getElementById('empty-state');
+            
+            todoList.innerHTML = '';
+            
+            if (todos.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                
+                todos.forEach((todo, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'todo-item' + (todo.completed ? ' completed' : '');
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'todo-checkbox';
+                    checkbox.checked = todo.completed;
+                    checkbox.addEventListener('change', () => {
+                        todos[index].completed = checkbox.checked;
+                        saveTodos();
+                        renderTodos();
+                    });
+                    
+                    const text = document.createElement('span');
+                    text.className = 'todo-text';
+                    text.textContent = todo.text;
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'todo-delete';
+                    deleteBtn.textContent = '🗑️';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        todos.splice(index, 1);
+                        saveTodos();
+                        renderTodos();
+                    });
+                    
+                    li.appendChild(checkbox);
+                    li.appendChild(text);
+                    li.appendChild(deleteBtn);
+                    todoList.appendChild(li);
+                });
+            }
+        }
+        
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                todos.push({
+                    text: text,
+                    completed: false,
+                    createdAt: Date.now()
+                });
+                input.value = '';
+                saveTodos();
+                renderTodos();
+            }
+        }
+        
+        function openTodoList() {
+            document.getElementById('todo-overlay').style.display = 'block';
+            document.getElementById('todo-modal').style.display = 'block';
+            
+            // Set current date
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('notebook-date').textContent = now.toLocaleDateString('en-US', options);
+            
+            renderTodos();
+            
+            // Focus on input
+            setTimeout(() => {
+                document.getElementById('todo-input').focus();
+            }, 100);
+        }
+        
+        function closeTodoList() {
+            document.getElementById('todo-overlay').style.display = 'none';
+            document.getElementById('todo-modal').style.display = 'none';
+        }
+        
+        // Event listeners for todo list
+        document.getElementById('add-todo-btn').addEventListener('click', addTodo);
+        
+        document.getElementById('todo-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTodo();
+            }
+        });
+        
+        document.getElementById('close-todo-btn').addEventListener('click', closeTodoList);
+        
+        document.getElementById('todo-overlay').addEventListener('click', closeTodoList);
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeTodoList();
+            }
+        });
+    </script>
+</body>
+</html>
