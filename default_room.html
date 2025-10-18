@@ -10,6 +10,31 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        #ui button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #ffd6e8;
+            border: 2px solid #d4a5a5;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        #ui p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+        }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -420,6 +445,11 @@
         <p><span class="control-key">Click Notebook</span> Open Todo List 📝</p>
         <p><span class="control-key">Click Objects</span> Interact</p>
     </div>
+
+    <div id="ui">
+        <button id="toggleFloating">Pause</button>
+        <p id="statusText">Click to pause floating</p>
+    </div>
     
     <div id="object-info"></div>
     
@@ -494,6 +524,19 @@
         const mouse = new THREE.Vector2();
         const clickableObjects = [];
         
+        // Global animation variables for blob
+        let isFloating = true;
+        let time = 0;
+        let position = 0;
+        const floatSpeed = 1.2;
+        const floatHeight = 0.25;
+        const bobSpeed = Math.PI;
+        const swayAmount = 0.25;
+
+        let blinkTimer = 0;
+        let isBlinking = false;
+        let blinkDuration = 0;
+
         // Materials
         const materials = {
             wood: new THREE.MeshStandardMaterial({ 
@@ -1585,6 +1628,87 @@
         }
         
         // Digital Clock (3D LED style)
+        // Create Blob
+        function createBlob() {
+            const blobGroup = new THREE.Group();
+            blobGroup.userData = { name: 'UwU Blob', description: 'A cute floating companion! 🫧' };
+
+            // Body
+            const bodyGeometry = new THREE.SphereGeometry(1.1, 32, 32);
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffd6e8,
+                roughness: 0.6,
+                metalness: 0.1,
+            });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            blobGroup.add(body);
+
+            // Outline
+            const outlineGeometry = bodyGeometry.clone();
+            const outlineMaterial = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                side: THREE.BackSide,
+            });
+            const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+            outline.scale.set(1.04, 1.04, 1.04);
+            blobGroup.add(outline);
+
+            // Eyes
+            const eyeGeometry = new THREE.SphereGeometry(0.13, 8, 8);
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x3a1f1f });
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(-0.35, 0.15, 0.95);
+            rightEye.position.set(0.35, 0.15, 0.95);
+            blobGroup.add(leftEye, rightEye);
+
+            // Cheeks
+            const cheekGeometry = new THREE.SphereGeometry(0.12, 8, 8);
+            const cheekMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffa6c9,
+                transparent: true,
+                opacity: 0.7,
+            });
+            const leftCheek = new THREE.Mesh(cheekGeometry, cheekMaterial);
+            leftCheek.position.set(-0.55, -0.05, 0.8);
+            const rightCheek = new THREE.Mesh(cheekGeometry, cheekMaterial);
+            rightCheek.position.set(0.55, -0.05, 0.8);
+            blobGroup.add(leftCheek, rightCheek);
+
+            // Mouth (w)
+            const mouthMaterial = new THREE.LineBasicMaterial({ color: 0x5a2b2b });
+            function createWMouth(smileOffset = 0) {
+                const leftCurve = new THREE.QuadraticBezierCurve3(
+                    new THREE.Vector3(-0.2, -0.1 + smileOffset, 0.95),
+                    new THREE.Vector3(-0.13, -0.17 + smileOffset, 0.95),
+                    new THREE.Vector3(0, -0.1 + smileOffset, 0.95)
+                );
+                const rightCurve = new THREE.QuadraticBezierCurve3(
+                    new THREE.Vector3(0, -0.1 + smileOffset, 0.95),
+                    new THREE.Vector3(0.13, -0.17 + smileOffset, 0.95),
+                    new THREE.Vector3(0.2, -0.1 + smileOffset, 0.95)
+                );
+                const points = [...leftCurve.getPoints(8), ...rightCurve.getPoints(8)];
+                return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mouthMaterial);
+            }
+
+            const mouth = createWMouth();
+            blobGroup.add(mouth);
+
+            // Store references for animation
+            blobGroup.userData.leftEye = leftEye;
+            blobGroup.userData.rightEye = rightEye;
+            blobGroup.userData.mouth = mouth;
+
+            // Scale down the blob to fit the room better
+            blobGroup.scale.set(0.5, 0.5, 0.5);
+            // Position the blob in the room
+            blobGroup.position.set(0, 3, -4);
+
+            clickableObjects.push(blobGroup);
+            return blobGroup;
+        }
+
         function createClock() {
             const clockGroup = new THREE.Group();
             clockGroup.userData = { name: 'Digital Clock', description: 'Keeping track of study time! ⏰', isClock: true };
@@ -1776,6 +1900,7 @@
         scene.add(createRoom());
         scene.add(createWindow());
         scene.add(createDesk());
+        scene.add(createBlob());
         scene.add(createChair());
         scene.add(createLaptop());
         scene.add(createBooks());
@@ -2014,6 +2139,61 @@
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+
+            // Blob animation
+            time += 0.016;
+
+            scene.traverse((object) => {
+                if (object.userData && object.userData.name === 'UwU Blob') {
+                    if (isFloating) {
+                        // Floating movement
+                        const bob = Math.sin(time * bobSpeed) * floatHeight;
+                        object.position.y = 3 + bob;
+                        object.position.x = Math.sin(time * bobSpeed * 0.7) * swayAmount;
+
+                        // Squish/stretch
+                        const squish = 1 + Math.sin(time * bobSpeed) * 0.07;
+                        object.scale.set(0.5 / squish, 0.5 * squish, 0.5 / squish);
+                        object.rotation.z = Math.sin(time * bobSpeed * 0.5) * 0.08;
+                        object.rotation.y = Math.sin(time * bobSpeed * 0.3) * 0.1;
+
+                        // Blinking
+                        blinkTimer += 0.016;
+                        if (!isBlinking && blinkTimer > 3 + Math.random() * 2) {
+                            isBlinking = true;
+                            blinkDuration = 0;
+                            blinkTimer = 0;
+                        }
+                        if (isBlinking) {
+                            blinkDuration += 0.016;
+                            const blinkScale = 1 - Math.sin(Math.min(blinkDuration * 10, Math.PI)) * 0.9;
+                            object.userData.leftEye.scale.y = blinkScale;
+                            object.userData.rightEye.scale.y = blinkScale;
+                            if (blinkDuration > 0.3) {
+                                isBlinking = false;
+                                object.userData.leftEye.scale.y = 1;
+                                object.userData.rightEye.scale.y = 1;
+                            }
+                        }
+
+                        // Animate mouth
+                        const smileOffset = Math.sin(time * bobSpeed) * 0.03;
+                        const mouth = object.userData.mouth;
+                        mouth.geometry.dispose();
+                        const leftCurve = new THREE.QuadraticBezierCurve3(
+                            new THREE.Vector3(-0.2, -0.1 + smileOffset, 0.95),
+                            new THREE.Vector3(-0.13, -0.17 + smileOffset, 0.95),
+                            new THREE.Vector3(0, -0.1 + smileOffset, 0.95)
+                        );
+                        const rightCurve = new THREE.QuadraticBezierCurve3(
+                            new THREE.Vector3(0, -0.1 + smileOffset, 0.95),
+                            new THREE.Vector3(0.13, -0.17 + smileOffset, 0.95),
+                            new THREE.Vector3(0.2, -0.1 + smileOffset, 0.95)
+                        );
+                        mouth.geometry = new THREE.BufferGeometry().setFromPoints([...leftCurve.getPoints(8), ...rightCurve.getPoints(8)]);
+                    }
+                }
+            });
             
             // Update digital clock display
             const now = new Date();
@@ -2169,6 +2349,15 @@
             if (e.key === 'Escape') {
                 closeTodoList();
             }
+        });
+
+        // Blob floating toggle
+        const button = document.getElementById('toggleFloating');
+        const statusText = document.getElementById('statusText');
+        button.addEventListener('click', () => {
+            isFloating = !isFloating;
+            button.textContent = isFloating ? "Pause" : "Float";
+            statusText.textContent = `Click to ${isFloating ? "pause" : "start"} floating`;
         });
     </script>
 </body>
