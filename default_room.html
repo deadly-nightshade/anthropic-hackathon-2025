@@ -49,22 +49,43 @@
         
         #object-info {
             position: absolute;
-            bottom: 20px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             color: white;
-            background: rgba(255, 160, 122, 0.9);
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-size: 16px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px 30px;
+            border: 4px solid white;
+            width: 600px;
+            height: 80px;
+            font-size: 24px;
+            font-family: 'Determination Mono', monospace;
             display: none;
             animation: fadeIn 0.3s ease-in;
             z-index: 100;
+            text-align: left;
+            line-height: 1.4;
+            text-shadow: none;
+            box-sizing: border-box;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateX(-50%) translateY(10px); }
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes textReveal {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        #object-info .text-content {
+            display: inline-block;
+            overflow: hidden;
+            width: 100%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            animation: textReveal 1s steps(40, end);
         }
         
         .control-key {
@@ -413,12 +434,12 @@
     
     <div id="info">
         <h2>🎧 Lofi Study Room</h2>
-        <p><span class="control-key">Left Click + Drag</span> Rotate view</p>
+        <p><span class="control-key">Left Click + Drag</span> 🎥 Rotate camera</p>
+        <p><span class="control-key">B</span> ✋ Toggle drag mode</p>
         <p><span class="control-key">Right Click + Drag</span> Pan view</p>
         <p><span class="control-key">Scroll</span> Zoom in/out</p>
-        <p><span class="control-key">Drag Objects</span> Move them around 🎨</p>
+        <p><span class="control-key">Click Objects</span> See info</p>
         <p><span class="control-key">Click Notebook</span> Open Todo List 📝</p>
-        <p><span class="control-key">Click Objects</span> Interact</p>
     </div>
     
     <div id="object-info"></div>
@@ -525,7 +546,7 @@
         let currentQuote = "";
         
         // Helper function to add inverted hull (outline) effect
-        function addOutlineEffect(mesh, scale = 1.04) {
+        function addOutlineEffect(mesh, scale = 1.04, isHovered = false) {
             if (!mesh.geometry || !mesh.material) return null;
             
             // Get the base color of the object
@@ -534,10 +555,14 @@
                 baseColor = mesh.material.color.getHex();
             }
             
-            // Use specific color for blob outline
+            // Create the outline material
             const outlineMaterial = new THREE.MeshBasicMaterial({
-                color: 0xbd82b0,  // Specific color for blob outline
-                side: THREE.BackSide
+                color: isHovered ? 0xffffff : 0xbd82b0,  // White when hovered, default color otherwise
+                side: THREE.BackSide,
+                transparent: true,
+                opacity: isHovered ? 0.8 : 1.0,
+                emissive: isHovered ? 0xffffff : 0x000000,
+                emissiveIntensity: isHovered ? 1.0 : 0.0
             });
             
             const outlineMesh = new THREE.Mesh(
@@ -547,9 +572,27 @@
             
             outlineMesh.position.copy(mesh.position);
             outlineMesh.rotation.copy(mesh.rotation);
-            outlineMesh.scale.multiplyScalar(scale);
+            outlineMesh.scale.multiplyScalar(isHovered ? scale * 1.05 : scale);
+            
+            // Add bloom effect when hovered
+            if (isHovered) {
+                outlineMesh.layers.enable(1); // Bloom layer
+            }
             
             return outlineMesh;
+        }
+        
+        // Function to update object hover effect
+        function updateObjectHoverEffect(object, isHovered) {
+            // Find and update outline mesh
+            object.traverse(child => {
+                if (child.isOutlineMesh) {
+                    child.material.color.setHex(isHovered ? 0xffffff : 0xbd82b0);
+                    child.material.opacity = isHovered ? 0.8 : 1.0;
+                    child.material.emissiveIntensity = isHovered ? 1.0 : 0.0;
+                    child.scale.copy(object.scale).multiplyScalar(isHovered ? 1.08 : 1.04);
+                }
+            });
         }
 
         // Materials
@@ -2439,12 +2482,34 @@
         scene.add(createWallArt());
         scene.add(createClock());
         
-        // Camera controls (orbit-like behavior)
+        // Camera and interaction controls
         let isDragging = false;
         let isPanning = false;
         let previousMousePosition = { x: 0, y: 0 };
         const cameraTarget = new THREE.Vector3(0, 2, -4);
         const cameraDistance = camera.position.distanceTo(cameraTarget);
+        
+        // Mode switching
+        let isViewMode = true; // true = camera rotation mode, false = object drag mode
+        
+        // Add mode indicator to UI
+        const modeIndicator = document.createElement('div');
+        modeIndicator.style.position = 'absolute';
+        modeIndicator.style.top = '60px';
+        modeIndicator.style.right = '20px';
+        modeIndicator.style.padding = '10px 20px';
+        modeIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
+        modeIndicator.style.color = 'white';
+        modeIndicator.style.borderRadius = '5px';
+        modeIndicator.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        modeIndicator.style.zIndex = '100';
+        document.body.appendChild(modeIndicator);
+        
+        function updateModeIndicator() {
+            modeIndicator.textContent = isViewMode ? '🎥 View Mode' : '✋ Drag Mode';
+            modeIndicator.style.background = isViewMode ? 'rgba(0, 128, 255, 0.7)' : 'rgba(255, 128, 0, 0.7)';
+        }
+        updateModeIndicator();
         
         // Object dragging
         let draggedObject = null;
@@ -2512,6 +2577,133 @@
         
         let isMouseDown = false; // Track if mouse button is held down
         
+        // Keyboard event handler for mode switching
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'b') {
+                isViewMode = !isViewMode;
+                updateModeIndicator();
+                
+                // Reset any active dragging when switching modes
+                if (isViewMode && draggedObject) {
+                    draggedObject = null;
+                    isDragging = false;
+                }
+            }
+        });
+        
+        // General hover detection
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(clickableObjects, true);
+                
+                if (intersects.length > 0) {
+                    let object = intersects[0].object;
+                    while (object && !object.userData.name) {
+                        object = object.parent;
+                    }
+                    
+                    if (object && object.userData.name) {
+                        document.body.style.cursor = 'pointer';
+                        
+                        // Make only this object's outline glow yellow
+                        object.traverse(child => {
+                            if (child.isOutlineMesh) {
+                                child.material.color.setHex(0xffff00); // Bright yellow
+                                child.material.emissive.setHex(0xffff00);
+                                child.material.emissiveIntensity = 1.0;
+                                child.material.opacity = 1.0;
+                                child.scale.copy(object.scale).multiplyScalar(1.08);
+                            }
+                        });
+                        
+                        // Reset all other objects' outlines
+                        clickableObjects.forEach(otherObject => {
+                            if (otherObject !== object) {
+                                otherObject.traverse(child => {
+                                    if (child.isOutlineMesh) {
+                                        child.material.color.setHex(0xbd82b0);
+                                        child.material.emissive.setHex(0x000000);
+                                        child.material.emissiveIntensity = 0;
+                                        child.material.opacity = 1.0;
+                                        child.scale.copy(otherObject.scale).multiplyScalar(1.04);
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Only show hover tooltip in drag mode
+                        if (!isViewMode) {
+                            const objectInfo = document.getElementById('object-info');
+                            objectInfo.innerHTML = object.userData.description || 'Interactive Object';
+                            objectInfo.style.display = 'block';
+                            objectInfo.style.left = (e.clientX + 10) + 'px';
+                            objectInfo.style.top = (e.clientY + 10) + 'px';
+                            objectInfo.style.color = 'white';
+                            objectInfo.style.padding = '8px 12px';
+                            objectInfo.style.borderRadius = '4px';
+                            objectInfo.style.zIndex = '1000';
+                            objectInfo.style.pointerEvents = 'none';
+                            objectInfo.style.textShadow = '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff';
+                            objectInfo.style.backgroundColor = 'transparent';
+                        }
+                        
+                        // Handle blob specific hover behavior
+                        if (object.userData.name === 'UwU Blob' && !isHoveringBlob) {
+                            isHoveringBlob = true;
+                            const newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                            if (newQuote !== currentQuote) {
+                                currentQuote = newQuote;
+                                if (object.userData.speechBubble) {
+                                    object.remove(object.userData.speechBubble);
+                                }
+                                const newBubble = createSpeechBubble(currentQuote);
+                                newBubble.position.set(0, 1.5, 0);
+                                object.add(newBubble);
+                                object.userData.speechBubble = newBubble;
+                            }
+                            if (object.userData.speechBubble) {
+                                object.userData.speechBubble.visible = true;
+                            }
+                        }
+                        
+                    }
+                } else {
+                    document.body.style.cursor = 'auto';
+                    
+                    // Reset all object outlines to default state
+                    clickableObjects.forEach(object => {
+                        object.traverse(child => {
+                            if (child.isOutlineMesh) {
+                                child.material.color.setHex(0xbd82b0);
+                                child.material.emissive.setHex(0x000000);
+                                child.material.emissiveIntensity = 0;
+                                child.material.opacity = 1.0;
+                                child.scale.copy(object.scale).multiplyScalar(1.04);
+                            }
+                        });
+                    });
+                    
+                    // Hide object info
+                    const objectInfo = document.getElementById('object-info');
+                    objectInfo.style.display = 'none';
+                    
+                    // Reset blob hover state
+                    if (isHoveringBlob) {
+                        isHoveringBlob = false;
+                        scene.traverse((object) => {
+                            if (object.userData && object.userData.name === 'UwU Blob' && object.userData.speechBubble) {
+                                object.userData.speechBubble.visible = false;
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        
         // Mouse event handlers
         renderer.domElement.addEventListener('mousedown', (e) => {
             isMouseDown = true;
@@ -2523,7 +2715,7 @@
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(clickableObjects, true);
                 
-                if (intersects.length > 0) {
+                if (intersects.length > 0 && !isViewMode) { // Only allow object interaction in drag mode
                     // Find the parent group with userData
                     let object = intersects[0].object;
                     while (object && !object.userData.name) {
@@ -2595,58 +2787,43 @@
         });
         
         renderer.domElement.addEventListener('mousemove', (e) => {
-            // Only process if mouse is down and we're actively dragging
-            if (!isMouseDown || !draggedObject) {
+            if (!isMouseDown) return;
+            
+            if (isViewMode) {
+                // Camera rotation mode
+                if (e.button === 0) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    // Rotate camera around target
+                    const rotationSpeed = 0.005;
+                    const theta = deltaX * rotationSpeed;
+                    const phi = deltaY * rotationSpeed;
+                    
+                    // Calculate new position
+                    const offset = camera.position.clone().sub(cameraTarget);
+                    const spherical = new THREE.Spherical().setFromVector3(offset);
+                    
+                    spherical.theta -= theta;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi - phi));
+                    
+                    offset.setFromSpherical(spherical);
+                    camera.position.copy(cameraTarget).add(offset);
+                    camera.lookAt(cameraTarget);
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                    return;
+                }
+            }
+            
+            // Object drag mode
+            if (!draggedObject) {
                 return;
             }
             
             // Update mouse position for raycasting
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            
-            // Check for blob hover
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(clickableObjects, true);
-            
-            let foundBlob = false;
-            if (intersects.length > 0) {
-                // Find the parent group with userData
-                let object = intersects[0].object;
-                while (object && !object.userData.name) {
-                    object = object.parent;
-                }
-                
-                if (object && object.userData.name === 'UwU Blob') {
-                    foundBlob = true;
-                    if (!isHoveringBlob) {
-                        isHoveringBlob = true;
-                        // Change quote and show bubble
-                        const newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-                        if (newQuote !== currentQuote) {
-                            currentQuote = newQuote;
-                            const oldBubble = object.userData.speechBubble;
-                            if (oldBubble) {
-                                object.remove(oldBubble);
-                            }
-                            const newBubble = createSpeechBubble(currentQuote);
-                            newBubble.position.set(0, 1.5, 0);
-                            object.add(newBubble);
-                            object.userData.speechBubble = newBubble;
-                        }
-                        object.userData.speechBubble.visible = true;
-                    }
-                }
-            }
-            
-            if (!foundBlob && isHoveringBlob) {
-                isHoveringBlob = false;
-                // Hide speech bubble from all instances of blob
-                scene.traverse((object) => {
-                    if (object.userData && object.userData.name === 'UwU Blob' && object.userData.speechBubble) {
-                        object.userData.speechBubble.visible = false;
-                    }
-                });
-            }
             
             // Handle object dragging
             if (draggedObject) {
@@ -2695,11 +2872,11 @@
                 return; // Don't rotate camera while dragging object
             }
             
-            if (isDragging) {
+            if (isDragging && !draggedObject) {
                 const deltaX = e.clientX - previousMousePosition.x;
                 const deltaY = e.clientY - previousMousePosition.y;
                 
-                // Rotate camera around target
+                // Rotate camera around target when not dragging objects
                 const rotationSpeed = 0.005;
                 const theta = deltaX * rotationSpeed;
                 const phi = deltaY * rotationSpeed;
@@ -2766,38 +2943,58 @@
                 } else {
                     const isWallObject = releasedObject.userData.isWallMounted;
                     
-                    // Find nearest wall if it's a wall object
+                    // Enhanced wall-snapping for wall objects
                     if (isWallObject) {
                         const pos = releasedObject.position;
                         let wallDistance = Infinity;
                         let wallPosition = new THREE.Vector3();
                         let wallNormal = new THREE.Vector3();
-                        
-                        // Check each wall
+                        let keepCurrentHeight = true;
+
+                        // Check each wall with snap thresholds
                         const walls = [
-                            { pos: new THREE.Vector3(-9.9, 0, 0), normal: new THREE.Vector3(1, 0, 0) },  // Left wall
-                            { pos: new THREE.Vector3(9.9, 0, 0), normal: new THREE.Vector3(-1, 0, 0) },  // Right wall
-                            { pos: new THREE.Vector3(0, 0, -9.9), normal: new THREE.Vector3(0, 0, 1) }   // Back wall
+                            { pos: new THREE.Vector3(-9.9, 0, 0), normal: new THREE.Vector3(1, 0, 0), threshold: 3 },   // Left wall
+                            { pos: new THREE.Vector3(9.9, 0, 0), normal: new THREE.Vector3(-1, 0, 0), threshold: 3 },   // Right wall
+                            { pos: new THREE.Vector3(0, 0, -9.9), normal: new THREE.Vector3(0, 0, 1), threshold: 3 }    // Back wall
                         ];
                         
+                        // Find closest wall within threshold
                         walls.forEach(wall => {
                             const dist = Math.abs(pos.dot(wall.normal) - wall.pos.dot(wall.normal));
-                            if (dist < wallDistance) {
+                            if (dist < wall.threshold && dist < wallDistance) {
                                 wallDistance = dist;
+                                // Create projected position but maintain current height
                                 wallPosition.copy(pos).projectOnPlane(wall.normal);
+                                if (keepCurrentHeight) {
+                                    wallPosition.y = pos.y;
+                                }
                                 wallNormal.copy(wall.normal);
                             }
                         });
-                        
-                        // Create wall snap animation
-                        droppingObjects.set(releasedObject, {
-                            startTime: Date.now(),
-                            duration: 600, // Slower wall snap
-                            startPos: releasedObject.position.clone(),
-                            targetPos: wallPosition,
-                            easing: 'easeOutQuad',
-                            isWallSnap: true
-                        });
+
+                        // Only snap if we found a wall within threshold
+                        if (wallDistance < Infinity) {
+                            // Create gentler wall snap animation
+                            droppingObjects.set(releasedObject, {
+                                startTime: Date.now(),
+                                duration: 800, // Even slower, smoother snap
+                                startPos: releasedObject.position.clone(),
+                                targetPos: wallPosition,
+                                easing: 'easeOutGentle',
+                                isWallSnap: true
+                            });
+                        } else {
+                            // If not near any wall, drop normally
+                            const dropDistance = releasedObject.position.y;
+                            const dropDuration = Math.sqrt(dropDistance) * 0.3;
+                            droppingObjects.set(releasedObject, {
+                                startTime: Date.now(),
+                                duration: dropDuration * 1200,
+                                startY: releasedObject.position.y,
+                                targetY: 0,
+                                easing: 'easeOutSoft'
+                            });
+                        }
                     } else {
                         // Regular floor drop with slower animation
                         const dropDistance = releasedObject.position.y;
@@ -2893,20 +3090,126 @@
         });
         
         // Show object info
+        let isTextAnimating = false;
+        let currentTextTimeout = null;
+        let skipText = false;
+        
+        function showTextGradually(text, element, onComplete) {
+            isTextAnimating = true;
+            let currentChar = 0;
+            const textContent = document.createElement('div');
+            textContent.className = 'text-content';
+            element.innerHTML = '';
+            element.appendChild(textContent);
+            
+            function addNextChar() {
+                if (skipText) {
+                    // Show all text immediately when skipped
+                    textContent.textContent = text;
+                    finishText();
+                    return;
+                }
+                
+                if (currentChar < text.length) {
+                    textContent.textContent = text.substring(0, currentChar + 1);
+                    currentChar++;
+                    currentTextTimeout = setTimeout(addNextChar, 50); // Adjust speed here
+                } else {
+                    finishText();
+                }
+            }
+            
+            function finishText() {
+                isTextAnimating = false;
+                skipText = false;
+                if (onComplete) onComplete();
+            }
+            
+            addNextChar();
+        }
+        
         function showObjectInfo(name, description) {
             const infoDiv = document.getElementById('object-info');
-            infoDiv.innerHTML = `<strong>${name}</strong>: ${description}`;
-            infoDiv.style.display = 'block';
             
-            setTimeout(() => {
-                hideObjectInfo();
-            }, 3000);
+            // Only show text box style in view mode
+            if (isViewMode) {
+                // Clear any existing timeout
+                if (window.hideInfoTimeout) {
+                    clearTimeout(window.hideInfoTimeout);
+                }
+                if (currentTextTimeout) {
+                    clearTimeout(currentTextTimeout);
+                }
+                
+                // Disable interactions
+                document.body.style.pointerEvents = 'none';
+                infoDiv.style.pointerEvents = 'auto';
+                
+                // Keep text in a single line
+                const text = `* ${description}`;
+                infoDiv.style.display = 'block';
+                
+                // Show text gradually
+                showTextGradually(text, infoDiv, () => {
+                    // Set timeout to hide after text finishes
+                    window.hideInfoTimeout = setTimeout(() => {
+                        hideObjectInfo();
+                    }, 1000); // Hide 1 second after completion
+                });
+            } else {
+                // In drag mode, just show floating tooltip
+                infoDiv.innerHTML = description;
+                infoDiv.style.display = 'block';
+                
+                // Position near cursor
+                const recentEvent = window.lastMouseEvent;
+                if (recentEvent) {
+                    infoDiv.style.left = (recentEvent.clientX + 10) + 'px';
+                    infoDiv.style.top = (recentEvent.clientY + 10) + 'px';
+                    infoDiv.style.transform = 'none';
+                }
+                
+                setTimeout(() => {
+                    hideObjectInfo();
+                }, 2000);
+            }
         }
         
         function hideObjectInfo() {
             const infoDiv = document.getElementById('object-info');
             infoDiv.style.display = 'none';
+            if (window.hideInfoTimeout) {
+                clearTimeout(window.hideInfoTimeout);
+            }
+            if (currentTextTimeout) {
+                clearTimeout(currentTextTimeout);
+            }
+            // Re-enable interactions
+            document.body.style.pointerEvents = 'auto';
+            isTextAnimating = false;
+            skipText = false;
         }
+        
+        // Handle Enter key for skipping text and dismissing text box
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isTextAnimating) {
+                    skipText = true;
+                } else {
+                    // If text is done animating and text box is visible, dismiss it
+                    const infoDiv = document.getElementById('object-info');
+                    if (infoDiv.style.display === 'block') {
+                        hideObjectInfo();
+                        clearTimeout(window.hideInfoTimeout);
+                    }
+                }
+            }
+        });
+        
+        // Track mouse position for tooltip
+        window.addEventListener('mousemove', (e) => {
+            window.lastMouseEvent = e;
+        });
         
         // Animate object on click
         const animatedObjects = new Map();
@@ -2962,6 +3265,9 @@
                     if (dropData.isWallSnap) {
                         // Wall object snapping animation
                         object.position.lerp(dropData.targetPos, easedProgress);
+                    } else if (dropData.isRepositioning) {
+                        // Smooth repositioning animation for out-of-bounds objects
+                        object.position.lerp(dropData.targetPos, easedProgress);
                     } else {
                         // Regular floor drop animation
                         const currentY = dropData.startY + (dropData.targetY - dropData.startY) * easedProgress;
@@ -2971,6 +3277,10 @@
                     // Animation complete
                     if (dropData.isWallSnap) {
                         object.position.copy(dropData.targetPos);
+                    } else if (dropData.isRepositioning) {
+                        object.position.copy(dropData.targetPos);
+                        // Add a small bounce effect when repositioned
+                        animateObject(object);
                     } else {
                         object.position.y = dropData.targetY;
                     }
@@ -2979,13 +3289,14 @@
                 }
             });
 
-            // Room boundaries (based on room size from createRoom function)
+            // Room boundaries with proper wall positions and thicknesses
             const roomBounds = {
-                minX: -5.5,  // Left wall
-                maxX: 5.5,   // Right wall
-                minZ: -5.5,  // Back wall
-                maxZ: 5.5,   // Front
-                maxY: 7.5    // Ceiling
+                minX: -9.8,  // Left wall (10 - wall thickness)
+                maxX: 9.8,   // Right wall
+                minZ: -9.8,  // Back wall
+                maxZ: 9.8,   // Front
+                maxY: 7.5,   // Ceiling
+                wallThickness: 0.2 // Wall thickness from createRoom function
             };
 
             // Function to check collision between objects
@@ -3019,51 +3330,112 @@
                        1.0; // Larger default size for small objects
             }
 
-            // Function to keep object within bounds and handle collisions
+            // Function to keep object within bounds and handle wall collisions
             function containObjectInBounds(object) {
                 const objectSize = getObjectSize(object);
                 const halfSize = objectSize / 2;
+                const isWallMounted = object.userData.isWallMounted;
 
-                // Constrain position within bounds
-                object.position.x = Math.max(roomBounds.minX + halfSize, 
-                                          Math.min(roomBounds.maxX - halfSize, object.position.x));
-                object.position.z = Math.max(roomBounds.minZ + halfSize, 
-                                          Math.min(roomBounds.maxZ - halfSize, object.position.z));
-                object.position.y = Math.min(roomBounds.maxY - halfSize, object.position.y);
+                // Get previous position for collision resolution
+                const previousPosition = object.position.clone();
+                
+                // Calculate object bounds with proper collision padding
+                const objBounds = {
+                    left: object.position.x - halfSize,
+                    right: object.position.x + halfSize,
+                    back: object.position.z - halfSize,
+                    front: object.position.z + halfSize
+                };
 
-                // Keep object on the floor unless it's the blob or being dragged
-                if (object.userData.name !== 'UwU Blob' && !draggedObject) {
-                    object.position.y = object.userData.defaultY || 0;
-                }
+                // Wall collision checking with automatic room placement
+                if (!isWallMounted) { // Don't constrain wall-mounted objects
+                    const safeMargin = 1.0; // Safe distance from walls
+                    const roomCenterX = 0;
+                    const roomCenterZ = -5; // Slightly towards back of room
+                    let needsRepositioning = false;
+                    let newPosition = object.position.clone();
 
-                // Check collisions with other objects
-                clickableObjects.forEach(other => {
-                    if (other !== object && other.userData.name !== 'UwU Blob') {
-                        const collision = checkObjectCollision(object, other);
-                        if (collision.isColliding) {
-                            // If objects are touching while not being dragged, make them static
-                            if (!draggedObject || draggedObject !== object) {
-                                // Set appropriate heights based on what they're colliding with
-                                if (other.position.y > 0) {
-                                    // If colliding with something above ground, place on top of it
-                                    object.position.y = other.position.y;
-                                } else {
-                                    // If colliding with something on the ground, place at ground level
-                                    object.position.y = 0;
-                                }
-                                makeObjectStatic(object);
-                                makeObjectStatic(other);
-                            } else {
-                                // If we're dragging the object, just prevent overlap
-                                const overlap = getObjectSize(object) + getObjectSize(other) - collision.distance;
-                                const moveX = collision.normal.x * overlap;
-                                const moveZ = collision.normal.z * overlap;
-                                object.position.x += moveX;
-                                object.position.z += moveZ;
-                            }
+                    // Check for wall collisions
+                    if (objBounds.left < roomBounds.minX || 
+                        objBounds.right > roomBounds.maxX || 
+                        objBounds.back < roomBounds.minZ || 
+                        objBounds.front > roomBounds.maxZ + 2) {
+
+                        // Calculate safe position within room bounds
+                        const safeX = Math.min(roomBounds.maxX - safeMargin - halfSize,
+                                             Math.max(roomBounds.minX + safeMargin + halfSize, object.position.x));
+                        const safeZ = Math.min(roomBounds.maxZ - safeMargin - halfSize,
+                                             Math.max(roomBounds.minZ + safeMargin + halfSize, object.position.z));
+
+                        // If the safe position is too close to walls, move towards room center
+                        if (Math.abs(safeX - roomBounds.minX) < safeMargin || 
+                            Math.abs(safeX - roomBounds.maxX) < safeMargin ||
+                            Math.abs(safeZ - roomBounds.minZ) < safeMargin || 
+                            Math.abs(safeZ - roomBounds.maxZ) < safeMargin) {
+                            
+                            // Create drop animation for repositioning
+                            droppingObjects.set(object, {
+                                startTime: Date.now(),
+                                duration: 800,
+                                startPos: object.position.clone(),
+                                targetPos: new THREE.Vector3(
+                                    roomCenterX + (Math.random() - 0.5) * 4, // Random offset from center
+                                    object.position.y,
+                                    roomCenterZ + (Math.random() - 0.5) * 4
+                                ),
+                                easing: 'easeOutGentle',
+                                isRepositioning: true
+                            });
+                        } else {
+                            // Use the safe position if it's far enough from walls
+                            object.position.set(safeX, object.position.y, safeZ);
                         }
                     }
-                });
+                }
+
+                // Ceiling collision
+                object.position.y = Math.min(roomBounds.maxY - halfSize, object.position.y);
+
+                // Floor constraint (except for floating objects and those being dragged)
+                if (object.userData.name !== 'UwU Blob' && !draggedObject) {
+                    object.position.y = Math.max(object.userData.defaultY || 0, object.position.y);
+                }
+
+                // Object-to-object collisions (only check if moved)
+                if (!object.position.equals(previousPosition)) {
+                    clickableObjects.forEach(other => {
+                        if (other !== object && other.userData.name !== 'UwU Blob') {
+                            const collision = checkObjectCollision(object, other);
+                            if (collision.isColliding) {
+                                // Vertical stacking - check if object is above other
+                                const objectBottom = object.position.y - getObjectSize(object)/2;
+                                const otherTop = other.position.y + getObjectSize(other)/2;
+                                
+                                if (objectBottom >= otherTop - 0.1) {
+                                    // Place on top
+                                    object.position.y = otherTop + getObjectSize(object)/2;
+                                    if (!draggedObject || draggedObject !== object) {
+                                        makeObjectStatic(object);
+                                    }
+                                } else if (!isWallMounted) {
+                                    // Horizontal collision resolution
+                                    const pushDirection = new THREE.Vector3(
+                                        collision.normal.x,
+                                        0,
+                                        collision.normal.z
+                                    ).normalize();
+                                    
+                                    const overlap = (getObjectSize(object)/2 + getObjectSize(other)/2) - collision.distance;
+                                    
+                                    if (overlap > 0) {
+                                        object.position.x += pushDirection.x * overlap;
+                                        object.position.z += pushDirection.z * overlap;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
             }
 
             // Update physics for falling objects
