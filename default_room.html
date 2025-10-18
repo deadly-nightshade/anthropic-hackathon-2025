@@ -67,6 +67,8 @@
             line-height: 1.4;
             text-shadow: none;
             box-sizing: border-box;
+            opacity: 1;
+            transition: opacity 0.4s ease-out;
         }
 
         @keyframes fadeIn {
@@ -435,7 +437,7 @@
     <div id="info">
         <h2>🎧 Lofi Study Room</h2>
         <p><span class="control-key">Left Click + Drag</span> 🎥 Rotate camera</p>
-        <p><span class="control-key">B</span> ✋ Toggle drag mode</p>
+        <p><span class="control-key">D</span> ✋ Toggle drag mode</p>
         <p><span class="control-key">Right Click + Drag</span> Pan view</p>
         <p><span class="control-key">Scroll</span> Zoom in/out</p>
         <p><span class="control-key">Click Objects</span> See info</p>
@@ -2579,7 +2581,7 @@
         
         // Keyboard event handler for mode switching
         document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'b') {
+            if (e.key.toLowerCase() === 'd') {
                 isViewMode = !isViewMode;
                 updateModeIndicator();
                 
@@ -3177,15 +3179,19 @@
         
         function hideObjectInfo() {
             const infoDiv = document.getElementById('object-info');
-            infoDiv.style.display = 'none';
-            if (window.hideInfoTimeout) {
-                clearTimeout(window.hideInfoTimeout);
-            }
-            if (currentTextTimeout) {
-                clearTimeout(currentTextTimeout);
-            }
-            // Re-enable interactions
-            document.body.style.pointerEvents = 'auto';
+            infoDiv.style.opacity = '0';
+            setTimeout(() => {
+                infoDiv.style.display = 'none';
+                infoDiv.style.opacity = '1';
+                if (window.hideInfoTimeout) {
+                    clearTimeout(window.hideInfoTimeout);
+                }
+                if (currentTextTimeout) {
+                    clearTimeout(currentTextTimeout);
+                }
+                // Re-enable interactions
+                document.body.style.pointerEvents = 'auto';
+            }, 400);
             isTextAnimating = false;
             skipText = false;
         }
