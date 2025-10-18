@@ -17,11 +17,11 @@ const anthropic = new Anthropic({
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// Serve static files from root directory (for default_room.html, etc.)
+app.use(express.static('.'));
+
 // Serve built React app
 app.use(express.static('dist'));
-
-// Also serve static files for backward compatibility
-app.use('/static', express.static('.'));
 
 // Store current room state
 let currentRoomHTML = '';
@@ -362,14 +362,107 @@ app.get('/api/history-status', (req, res) => {
     });
 });
 
+// AI Item Generator endpoint
+app.post('/api/generate-item', async (req, res) => {
+    try {
+        const { description } = req.body;
+        
+        if (!description) {
+            return res.status(400).json({ error: 'Description is required' });
+        }
+
+        console.log(`✨ Generating 3D item: "${description}"`);
+
+        // Send request to Anthropic
+        const response = await anthropic.messages.create({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 1024,
+            messages: [{
+                role: 'user',
+                content: `You are a 3D object designer. Generate detailed specifications for a 3D object based on this description: "${description}"
+
+Return ONLY a JSON object (no markdown, no explanation) with this exact structure:
+{
+  "type": "lamp|plant|chair|table|generic",
+  "name": "Short descriptive name",
+  "color": "#HEXCOLOR",
+  "details": {
+    "size": "small|medium|large",
+    "style": "modern|vintage|minimal|decorative",
+    "specialFeatures": ["feature1", "feature2"]
+  }
+}
+
+Choose the most appropriate type. Use creative colors that match the description.`
+            }]
+        });
+
+        const aiResponse = response.content[0].text.trim();
+        
+        // Parse the JSON response
+        let itemSpec;
+        try {
+            // Clean response by removing any markdown code blocks if present
+            let cleanResponse = aiResponse;
+            const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                itemSpec = JSON.parse(jsonMatch[0]);
+            } else {
+                throw new Error('No JSON object found in response');
+            }
+            
+            console.log('✅ Generated item spec:', itemSpec);
+            
+        } catch (parseError) {
+            console.warn('⚠️ Failed to parse Claude response, using fallback');
+            // Fallback if parsing fails
+            itemSpec = {
+                type: 'generic',
+                name: 'AI Object',
+                color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                details: {
+                    size: 'medium',
+                    style: 'modern',
+                    specialFeatures: []
+                }
+            };
+        }
+
+        res.json({
+            success: true,
+            itemSpec: itemSpec,
+            originalDescription: description
+        });
+
+    } catch (error) {
+        console.error('❌ Error generating item:', error);
+        res.status(500).json({
+            error: 'Failed to generate item',
+            details: error.message
+        });
+    }
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Serve landing page at root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Serve React app for all other routes (must be after API routes)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    const requestedPath = path.join(__dirname, req.path);
+    // If file exists, serve it (for default_room.html, editor.html, etc.)
+    if (require('fs').existsSync(requestedPath) && require('fs').statSync(requestedPath).isFile()) {
+        res.sendFile(requestedPath);
+    } else {
+        // Otherwise serve React app
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    }
 });
 
 // Start server
