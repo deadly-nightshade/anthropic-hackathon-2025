@@ -99,6 +99,76 @@
             font-family: monospace;
         }
         
+        /* Scene Control Panel */
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.6s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+        
+        #control-panel.visible {
+            display: flex; /* Show when visible class is added */
+            opacity: 1;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .control-btn:hover:not(:disabled) {background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.5);transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.3);}
+        .control-btn:active:not(:disabled) {transform:translateY(0);}
+        .control-btn:disabled {opacity:0.4;cursor:not-allowed;}
+        .control-btn.restart {background:rgba(255,100,100,0.2);border-color:rgba(255,100,100,0.5);}
+        .control-btn.restart:hover:not(:disabled) {background:rgba(255,100,100,0.3);border-color:rgba(255,100,100,0.7);}
+        .control-btn.save {background:rgba(100,255,100,0.2);border-color:rgba(100,255,100,0.5);}
+        .control-btn.save:hover:not(:disabled) {background:rgba(100,255,100,0.3);border-color:rgba(100,255,100,0.7);}
+        .control-btn.discard {background:rgba(255,165,0,0.2);border-color:rgba(255,165,0,0.5);}
+        .control-btn.discard:hover:not(:disabled) {background:rgba(255,165,0,0.3);border-color:rgba(255,165,0,0.7);}
+        
+        .control-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 5px 0;
+        }
+        
+        .changes-indicator {
+            font-size: 12px;
+            color: #ffa07a;
+            text-align: center;
+            padding: 5px;
+            display: none;
+        }
+        
+        .changes-indicator.visible {
+            display: block;
+        }
+        
         /* Todo List Modal */
         #todo-modal {
             display: none;
@@ -181,102 +251,20 @@
             z-index: 2;
         }
         
-        #todo-modal-inner {
-            padding: 50px 60px 40px 40px;
-            overflow-y: auto;
-            max-height: 85vh;
-            position: relative;
-        }
+        #todo-modal-inner {padding:50px 60px 40px 40px;overflow-y:auto;max-height:85vh;position:relative;}
+        #todo-modal-inner::-webkit-scrollbar {width:8px;}
+        #todo-modal-inner::-webkit-scrollbar-track {background:rgba(210,180,140,0.2);border-radius:4px;}
+        #todo-modal-inner::-webkit-scrollbar-thumb {background:rgba(139,69,19,0.4);border-radius:4px;}
+        #todo-modal-inner::-webkit-scrollbar-thumb:hover {background:rgba(139,69,19,0.6);}
+        #todo-modal h2 {margin:0 0 10px 0;color:#5d4e37;font-size:32px;text-align:left;font-weight:700;font-family:'Courier New',monospace;text-shadow:1px 1px 0px rgba(255,255,255,0.8);letter-spacing:1px;}
+        .notebook-date {font-size:14px;color:#8b7355;font-style:italic;margin-bottom:25px;font-family:'Courier New',monospace;text-align:left;}
+        #todo-modal .notebook-lines {background-image:linear-gradient(90deg,#e8d5c4 1px,transparent 1px),linear-gradient(to bottom,transparent 39px,#d4c4b0 39px,#d4c4b0 40px,transparent 40px);background-size:100% 100%,100% 40px;background-position:30px 0,0 0;padding:20px 0;position:relative;}
+        #todo-modal .notebook-lines::before {content:'';position:absolute;left:35px;top:0;bottom:0;width:2px;background:#ff6b6b;opacity:0.4;}
         
-        /* Scrollbar styling */
-        #todo-modal-inner::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        #todo-modal-inner::-webkit-scrollbar-track {
-            background: rgba(210, 180, 140, 0.2);
-            border-radius: 4px;
-        }
-        
-        #todo-modal-inner::-webkit-scrollbar-thumb {
-            background: rgba(139, 69, 19, 0.4);
-            border-radius: 4px;
-        }
-        
-        #todo-modal-inner::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 69, 19, 0.6);
-        }
-        
-        #todo-modal h2 {
-            margin: 0 0 10px 0;
-            color: #5d4e37;
-            font-size: 32px;
-            text-align: left;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
-            letter-spacing: 1px;
-        }
-        
-        .notebook-date {
-            font-size: 14px;
-            color: #8b7355;
-            font-style: italic;
-            margin-bottom: 25px;
-            font-family: 'Courier New', monospace;
-            text-align: left;
-        }
-        
-        #todo-modal .notebook-lines {
-            background-image: 
-                linear-gradient(90deg, #e8d5c4 1px, transparent 1px),
-                linear-gradient(to bottom, transparent 39px, #d4c4b0 39px, #d4c4b0 40px, transparent 40px);
-            background-size: 100% 100%, 100% 40px;
-            background-position: 30px 0, 0 0;
-            padding: 20px 0;
-            position: relative;
-        }
-        
-        /* Red margin line */
-        #todo-modal .notebook-lines::before {
-            content: '';
-            position: absolute;
-            left: 35px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #ff6b6b;
-            opacity: 0.4;
-        }
-        
-        #todo-input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            align-items: center;
-        }
-        
-        #todo-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: none;
-            border-bottom: 2px solid #8b7355;
-            background: transparent;
-            font-size: 18px;
-            font-family: 'Courier New', monospace;
-            color: #333;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        
-        #todo-input:focus {
-            border-bottom-color: #5d4e37;
-        }
-        
-        #todo-input::placeholder {
-            color: #aaa;
-            font-style: italic;
-        }
+        #todo-input-container {display:flex;gap:10px;margin-bottom:25px;align-items:center;}
+        #todo-input {flex:1;padding:12px 15px;border:none;border-bottom:2px solid #8b7355;background:transparent;font-size:18px;font-family:'Courier New',monospace;color:#333;outline:none;transition:border-color 0.3s;}
+        #todo-input:focus {border-bottom-color:#5d4e37;}
+        #todo-input::placeholder {color:#aaa;font-style:italic;}
         
         #add-todo-btn {
             padding: 12px 24px;
@@ -407,6 +395,18 @@
             backdrop-filter: blur(8px);
         }
         
+        #book-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10001;
+            backdrop-filter: blur(8px);
+        }
+        
         .empty-state {
             text-align: center;
             padding: 50px 20px;
@@ -429,6 +429,507 @@
             pointer-events: none;
             opacity: 0.3;
         }
+        
+        /* Library Book Modal */
+        #book-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #f5e6d3 0%, #fff8e7 50%, #f5e6d3 100%);
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 3px rgba(255, 255, 255, 0.8),
+                inset 5px 0 10px rgba(139, 69, 19, 0.1);
+            z-index: 10002;
+            width: 700px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: bookOpen 0.5s ease-out;
+            border: 4px solid #8b4513;
+            border-left: 20px solid #6b3410;
+        }
+        
+        @keyframes bookOpen {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotateY(-30deg) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotateY(0deg) scale(1);
+            }
+        }
+        
+        /* Book spine effect */
+        #book-modal::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to right, #4a2511, #6b3410);
+            box-shadow: inset -3px 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        #book-modal-inner {
+            padding: 40px 50px;
+            overflow-y: auto;
+            max-height: 85vh;
+            position: relative;
+        }
+        
+        #book-modal-inner::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #book-modal-inner::-webkit-scrollbar-track {
+            background: rgba(210, 180, 140, 0.2);
+            border-radius: 4px;
+        }
+        
+        #book-modal-inner::-webkit-scrollbar-thumb {
+            background: rgba(139, 69, 19, 0.4);
+            border-radius: 4px;
+        }
+        
+        .book-title-section {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #8b4513;
+            padding-bottom: 20px;
+        }
+        
+        .book-title-label {
+            font-size: 14px;
+            color: #8b7355;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #book-title-input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Georgia', serif;
+            color: #5d4e37;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid #d4c4b0;
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        #book-title-input:focus {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: #8b4513;
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.2);
+        }
+        
+        .book-content-section {
+            min-height: 300px;
+        }
+        
+        .book-page-label {
+            font-size: 12px;
+            color: #999;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+        
+        #book-content-textarea {
+            width: 100%;
+            min-height: 350px;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.8;
+            font-family: 'Georgia', serif;
+            color: #2c2416;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: vertical;
+            background-image: repeating-linear-gradient(
+                transparent,
+                transparent 35px,
+                #d4c4b0 35px,
+                #d4c4b0 36px
+            );
+            background-attachment: local;
+        }
+        
+        #book-content-textarea::placeholder {
+            color: #bbb;
+            font-style: italic;
+        }
+        
+        .book-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #d4c4b0;
+        }
+        
+        .book-close-btn {
+            padding: 12px 30px;
+            background: #8b4513;
+            color: #fff8e7;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        }
+        
+        .book-close-btn:hover {
+            background: #704010;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 69, 19, 0.4);
+        }
+        
+        .book-close-btn:active {
+            transform: translateY(0);
+        }
+        
+        .char-count {
+            font-size: 12px;
+            color: #999;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Book page decoration */
+        #book-modal-inner::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            width: 3px;
+            height: calc(100% - 40px);
+            background: #e8a5a5;
+        }
+
+        /* Poster Modal Styles */
+        #poster-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #poster-modal.active {
+            display: flex;
+        }
+
+        #poster-modal-inner {
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+            padding: 40px;
+            border-radius: 20px;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(255, 105, 180, 0.5);
+            position: relative;
+            border: 4px solid #fff;
+        }
+
+        .poster-title-section {
+            margin-bottom: 25px;
+        }
+
+        .poster-title-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #poster-text-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            font-family: 'Arial', sans-serif;
+            resize: vertical;
+            min-height: 100px;
+            max-height: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #poster-text-input:focus {
+            outline: none;
+            border-color: #ffb6c1;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(255, 182, 193, 0.3);
+        }
+
+        .poster-size-section {
+            margin-bottom: 25px;
+        }
+
+        .poster-size-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .size-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #text-size-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        #text-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        #text-size-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        #text-size-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        #text-size-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .size-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            min-width: 50px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .poster-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .poster-char-count {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Arial', sans-serif;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .poster-close-btn {
+            background: #fff;
+            color: #ff69b4;
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .poster-close-btn:hover {
+            background: #ffe4f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .poster-close-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Library Interface Styles (Club Penguin inspired) */
+        #library-interface {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;z-index:10000;animation:fadeIn 0.3s ease;}
+        #library-interface.active {display:flex;}
+        #library-container {background:linear-gradient(135deg,#8B4513 0%,#A0522D 50%,#8B4513 100%);width:90%;max-width:1200px;height:85vh;border-radius:30px;border:8px solid #654321;box-shadow:0 20px 60px rgba(0,0,0,0.6),inset 0 2px 20px rgba(255,255,255,0.1);position:relative;display:flex;flex-direction:column;overflow:hidden;}
+        #library-header {background:linear-gradient(180deg,#654321 0%,#5a3a1a 100%);padding:25px 40px;border-bottom:4px solid #4a2f15;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);}
+        #library-title {font-size:32px;font-weight:bold;color:#FFD700;text-shadow:3px 3px 6px rgba(0,0,0,0.5);font-family:'Comic Sans MS',cursive,sans-serif;}
+        #library-close-btn {background:#DC143C;color:white;border:3px solid #8B0000;padding:12px 24px;font-size:18px;font-weight:bold;border-radius:15px;cursor:pointer;transition:all 0.2s ease;box-shadow:0 4px 0 #8B0000;font-family:'Comic Sans MS',cursive,sans-serif;}
+        #library-close-btn:hover {background:#FF1493;transform:translateY(-2px);box-shadow:0 6px 0 #8B0000;}
+        #library-close-btn:active {transform:translateY(2px);box-shadow:0 2px 0 #8B0000;}
+        #library-content {flex:1;padding:40px;overflow-y:auto;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23A0522D" width="100" height="100"/><circle cx="10" cy="10" r="2" fill="%238B4513" opacity="0.3"/><circle cx="50" cy="50" r="2" fill="%238B4513" opacity="0.3"/><circle cx="90" cy="90" r="2" fill="%238B4513" opacity="0.3"/></svg>');}
+        #books-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:30px;padding:20px;}
+        .library-book-card {background:white;border-radius:15px;border:4px solid #654321;box-shadow:0 8px 16px rgba(0,0,0,0.3);cursor:pointer;transition:all 0.3s ease;overflow:hidden;position:relative;}
+
+        .library-book-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            border-color: #FFD700;
+        }
+
+        .library-book-spine {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            text-align: center;
+            word-wrap: break-word;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .library-book-spine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .library-book-info {
+            padding: 20px;
+            background: #FFF8DC;
+            border-top: 3px solid #DEB887;
+        }
+
+        .library-book-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #654321;
+            margin-bottom: 8px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        .library-book-preview {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .library-book-empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Scrollbar styling for library */
+        #library-content::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        #library-content::-webkit-scrollbar-track {
+            background: #654321;
+            border-radius: 6px;
+        }
+
+        #library-content::-webkit-scrollbar-thumb {
+            background: #FFD700;
+            border-radius: 6px;
+            border: 2px solid #654321;
+        }
+
+        #library-content::-webkit-scrollbar-thumb:hover {
+            background: #FFA500;
+        }
+
+        /* Edit Library Button */
+        #edit-library-btn {
+            display: none;
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #654321;
+            border: 4px solid #654321;
+            padding: 18px 36px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 0 #8B4513, 0 12px 24px rgba(0, 0, 0, 0.4);
+            z-index: 9998;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            animation: fadeIn 0.3s ease, pulse 2s ease-in-out infinite;
+        }
+
+        #edit-library-btn.visible {
+            display: block;
+        }
+
+        #edit-library-btn:hover {
+            background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #8B4513, 0 16px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        #edit-library-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #8B4513, 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 0 #8B4513, 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 0 rgba(255, 215, 0, 0.7);
+            }
+            50% {
+                box-shadow: 0 8px 0 #8B4513, 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 20px rgba(255, 215, 0, 0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -442,6 +943,43 @@
         <p><span class="control-key">Scroll</span> Zoom in/out</p>
         <p><span class="control-key">Click Objects</span> See info</p>
         <p><span class="control-key">Click Notebook</span> Open Todo List 📝</p>
+    </div>
+    
+    <!-- Scene Control Panel -->
+    <div id="control-panel">
+        <div class="control-group">
+            <button class="control-btn restart" id="restart-btn" title="Reset scene to original state">
+                🔄 Restart
+            </button>
+        </div>
+        
+        <div class="control-divider"></div>
+        
+        <div class="control-group">
+            <button class="control-btn" id="undo-btn" disabled title="Undo last move (Ctrl+Z)">
+                ↶ Undo
+            </button>
+            <button class="control-btn" id="redo-btn" disabled title="Redo last move (Ctrl+Y)">
+                ↷ Redo
+            </button>
+        </div>
+        
+        <div class="control-divider"></div>
+        
+        <div class="control-group">
+            <button class="control-btn save" id="save-btn" disabled title="Save current layout">
+                💾 Save
+            </button>
+        </div>
+        <div class="control-group">
+            <button class="control-btn discard" id="discard-btn" disabled title="Discard unsaved changes">
+                🗑️ Discard
+            </button>
+        </div>
+        
+        <div class="changes-indicator" id="changes-indicator">
+            • Unsaved changes
+        </div>
     </div>
     
     <div id="object-info"></div>
@@ -465,6 +1003,65 @@
             <button id="close-todo-btn">Close Notebook</button>
         </div>
     </div>
+    
+    <!-- Library Book Modal -->
+    <div id="book-overlay"></div>
+    <div id="book-modal">
+        <div id="book-modal-inner">
+            <div class="book-title-section">
+                <div class="book-title-label">Book Title</div>
+                <input type="text" id="book-title-input" placeholder="Enter book title..." maxlength="50" />
+            </div>
+            <div class="book-content-section">
+                <div class="book-page-label">Contents</div>
+                <textarea id="book-content-textarea" placeholder="Write your notes, thoughts, or story here..."></textarea>
+            </div>
+            <div class="book-actions">
+                <span class="char-count" id="book-char-count">0 characters</span>
+                <button class="book-close-btn" id="close-book-btn">Close Book</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poster Editor Modal -->
+    <div id="poster-modal">
+        <div id="poster-modal-inner">
+            <div class="poster-title-section">
+                <div class="poster-title-label">✨ Edit Your Poster ✨</div>
+                <textarea id="poster-text-input" placeholder="Enter your motivational text..." maxlength="200"></textarea>
+            </div>
+            <div class="poster-size-section">
+                <div class="poster-size-label">Text Size</div>
+                <div class="size-controls">
+                    <input type="range" id="text-size-slider" min="0.1" max="0.5" step="0.05" value="0.3" />
+                    <span class="size-value" id="text-size-value">0.3</span>
+                </div>
+            </div>
+            <div class="poster-actions">
+                <span class="poster-char-count" id="poster-char-count">0 / 200 characters</span>
+                <button class="poster-close-btn" id="close-poster-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Interface -->
+    <div id="library-interface">
+        <div id="library-container">
+            <div id="library-header">
+                <div id="library-title">📚 My Library 📚</div>
+                <button id="library-close-btn">✕ Close</button>
+            </div>
+            <div id="library-content">
+                <div id="books-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Library Button (appears when zoomed into bookshelf) -->
+    <button id="edit-library-btn">📚 Edit Library</button>
+
+    <!-- Hidden file input for image upload -->
+    <input type="file" id="image-uploader" accept="image/*" style="display: none;" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
@@ -719,84 +1316,31 @@
             return roomGroup;
         }
         
+        // Helper: Create rounded rect shape (reused across window, desk, posters, etc)
+        const createRoundedShape = (w, h, r) => {
+            const s = new THREE.Shape();
+            s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);
+            s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);
+            s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);
+            return s;
+        };
+        
         // Window with view
         function createWindow() {
             const windowGroup = new THREE.Group();
-            
-            // Window frame with rounded corners
             const frameMat = materials.darkWood;
+            const createBar = (w, h, d) => new THREE.ExtrudeGeometry(createRoundedShape(w, h, Math.min(0.03, Math.min(w, h) / 4)), { depth: d, bevelEnabled: false });
+            const addFrame = (w,h,d,x,y,z) => {const m=new THREE.Mesh(createBar(w,h,d),frameMat);m.rotation.y=Math.PI/2;m.position.set(x,y,z);windowGroup.add(m);};
             
-            // Create rounded frame pieces
-            const createRoundedBar = (width, height, depth) => {
-                const shape = new THREE.Shape();
-                const w = width, h = height, r = Math.min(0.03, Math.min(w, h) / 4);
-                shape.moveTo(-w/2 + r, -h/2);
-                shape.lineTo(w/2 - r, -h/2);
-                shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
-                shape.lineTo(w/2, h/2 - r);
-                shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
-                shape.lineTo(-w/2 + r, h/2);
-                shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
-                shape.lineTo(-w/2, -h/2 + r);
-                shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
-                return new THREE.ExtrudeGeometry(shape, { depth: depth, bevelEnabled: false });
-            };
+            addFrame(4.4,0.15,0.15,10,5,0);addFrame(4.4,0.15,0.15,10,2,0);addFrame(0.15,3.3,0.15,10,3.5,-2.15);
+            addFrame(0.15,3.3,0.15,10,3.5,2.15);addFrame(0.12,3.15,0.15,10,3.5,0);
             
-            // Outer frame - top
-            const frameTop = new THREE.Mesh(createRoundedBar(4.4, 0.15, 0.15), frameMat);
-            frameTop.rotation.y = Math.PI / 2;
-            frameTop.position.set(10, 5, 0);
-            windowGroup.add(frameTop);
-            
-            // Outer frame - bottom
-            const frameBottom = new THREE.Mesh(createRoundedBar(4.4, 0.15, 0.15), frameMat);
-            frameBottom.rotation.y = Math.PI / 2;
-            frameBottom.position.set(10, 2, 0);
-            windowGroup.add(frameBottom);
-            
-            // Outer frame - left
-            const frameLeft = new THREE.Mesh(createRoundedBar(0.15, 3.3, 0.15), frameMat);
-            frameLeft.rotation.y = Math.PI / 2;
-            frameLeft.position.set(10, 3.5, -2.15);
-            windowGroup.add(frameLeft);
-            
-            // Outer frame - right
-            const frameRight = new THREE.Mesh(createRoundedBar(0.15, 3.3, 0.15), frameMat);
-            frameRight.rotation.y = Math.PI / 2;
-            frameRight.position.set(10, 3.5, 2.15);
-            windowGroup.add(frameRight);
-            
-            // Center divider (rounded)
-            const centerDivider = new THREE.Mesh(createRoundedBar(0.12, 3.15, 0.15), frameMat);
-            centerDivider.rotation.y = Math.PI / 2;
-            centerDivider.position.set(10, 3.5, 0);
-            windowGroup.add(centerDivider);
-            
-            // Glass panes with slight bevel
-            const pane1Shape = new THREE.Shape();
-            const pw = 1.9, ph = 2.9, pr = 0.1;
-            pane1Shape.moveTo(-pw/2 + pr, -ph/2);
-            pane1Shape.lineTo(pw/2 - pr, -ph/2);
-            pane1Shape.quadraticCurveTo(pw/2, -ph/2, pw/2, -ph/2 + pr);
-            pane1Shape.lineTo(pw/2, ph/2 - pr);
-            pane1Shape.quadraticCurveTo(pw/2, ph/2, pw/2 - pr, ph/2);
-            pane1Shape.lineTo(-pw/2 + pr, ph/2);
-            pane1Shape.quadraticCurveTo(-pw/2, ph/2, -pw/2, ph/2 - pr);
-            pane1Shape.lineTo(-pw/2, -ph/2 + pr);
-            pane1Shape.quadraticCurveTo(-pw/2, -ph/2, -pw/2 + pr, -ph/2);
-            
-            const pane1 = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(pane1Shape, { depth: 0.05, bevelEnabled: false }),
-                materials.window
-            );
+            const paneShape = createRoundedShape(1.9, 2.9, 0.1);
+            const pane1 = new THREE.Mesh(new THREE.ExtrudeGeometry(paneShape, { depth: 0.05, bevelEnabled: false }), materials.window);
             pane1.rotation.y = Math.PI / 2;
             pane1.position.set(9.95, 3.5, -1.05);
             windowGroup.add(pane1);
-            
-            const pane2 = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(pane1Shape, { depth: 0.05, bevelEnabled: false }),
-                materials.window
-            );
+            const pane2 = new THREE.Mesh(new THREE.ExtrudeGeometry(paneShape, { depth: 0.05, bevelEnabled: false }), materials.window);
             pane2.rotation.y = Math.PI / 2;
             pane2.position.set(9.95, 3.5, 1.05);
             windowGroup.add(pane2);
@@ -852,21 +1396,8 @@
                 }
             }
             
-            // Rounded drawer with curved front
-            const drawerShape = new THREE.Shape();
-            const dw = 1.5, dd = 2.2, dr = 0.15;
-            drawerShape.moveTo(-dw/2 + dr, -dd/2);
-            drawerShape.lineTo(dw/2 - dr, -dd/2);
-            drawerShape.quadraticCurveTo(dw/2, -dd/2, dw/2, -dd/2 + dr);
-            drawerShape.lineTo(dw/2, dd/2 - dr);
-            drawerShape.quadraticCurveTo(dw/2, dd/2, dw/2 - dr, dd/2);
-            drawerShape.lineTo(-dw/2 + dr, dd/2);
-            drawerShape.quadraticCurveTo(-dw/2, dd/2, -dw/2, dd/2 - dr);
-            drawerShape.lineTo(-dw/2, -dd/2 + dr);
-            drawerShape.quadraticCurveTo(-dw/2, -dd/2, -dw/2 + dr, -dd/2);
-            
             const drawer = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(drawerShape, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }),
+                new THREE.ExtrudeGeometry(createRoundedShape(1.5, 2.2, 0.15), {depth:0.3,bevelEnabled:true,bevelThickness:0.02,bevelSize:0.02,bevelSegments:3}),
                 materials.darkWood
             );
             drawer.rotation.x = -Math.PI / 2;
@@ -917,6 +1448,7 @@
             if (seatOutline) {
                 chairGroup.add(seatOutline);
             }
+
 
             // Curved backrest
             const backrestGeometry = new THREE.BoxGeometry(1.2, 1.5, 0.25, 8, 16, 8);
@@ -1001,7 +1533,7 @@
                 materials.darkWood
             );
             base.rotation.x = -Math.PI / 2;
-            base.position.set(0.5, 1.55, -7);
+            base.position.set(0.5, 1.70, -7);
             base.castShadow = true;
             laptopGroup.add(base);
             
@@ -1023,86 +1555,43 @@
                 new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
             );
             keyboard.rotation.x = -Math.PI / 2;
-            keyboard.position.set(0.5, 1.62, -7);
+            keyboard.position.set(0.5, 1.77, -7);
             laptopGroup.add(keyboard);
             
-            // Rounded screen with curved display
-            const screenShape = new THREE.Shape();
-            const sw = 1.2, sh = 0.8, sr = 0.08;
-            screenShape.moveTo(-sw/2 + sr, -sh/2);
-            screenShape.lineTo(sw/2 - sr, -sh/2);
-            screenShape.quadraticCurveTo(sw/2, -sh/2, sw/2, -sh/2 + sr);
-            screenShape.lineTo(sw/2, sh/2 - sr);
-            screenShape.quadraticCurveTo(sw/2, sh/2, sw/2 - sr, sh/2);
-            screenShape.lineTo(-sw/2 + sr, sh/2);
-            screenShape.quadraticCurveTo(-sw/2, sh/2, -sw/2, sh/2 - sr);
-            screenShape.lineTo(-sw/2, -sh/2 + sr);
-            screenShape.quadraticCurveTo(-sw/2, -sh/2, -sw/2 + sr, -sh/2);
-            
             const screen = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(screenShape, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }),
+                new THREE.ExtrudeGeometry(createRoundedShape(1.2, 0.8, 0.08), {depth:0.08,bevelEnabled:true,bevelThickness:0.02,bevelSize:0.02,bevelSegments:3}),
                 materials.screen
             );
-            screen.position.set(0.5, 1.95, -7.45);
+            screen.position.set(0.5, 2.10, -7.45);
             screen.rotation.x = -0.2;
             screen.castShadow = true;
             laptopGroup.add(screen);
 
-            // Add outline to screen
             const screenOutline = addOutlineEffect(screen, 1.03);
-            if (screenOutline) {
-                laptopGroup.add(screenOutline);
-            }
+            if (screenOutline) laptopGroup.add(screenOutline);
             
             clickableObjects.push(laptopGroup);
             return laptopGroup;
         }
         
-        // Books stack
         function createBooks() {
             const booksGroup = new THREE.Group();
             booksGroup.userData = { name: 'Book Stack', description: 'Required reading... eventually 📖' };
             
             const colors = [0xdc143c, 0x4169e1, 0x32cd32, 0xff8c00, 0x9370db];
             const heights = [0.15, 0.12, 0.18, 0.14, 0.16];
-            
             let currentHeight = 1.55;
             
             for (let i = 0; i < 5; i++) {
-                // Create rounded book with beveled edges
-                const bookShape = new THREE.Shape();
-                const bw = 0.6, bd = 0.8, br = 0.05;
-                bookShape.moveTo(-bw/2 + br, -bd/2);
-                bookShape.lineTo(bw/2 - br, -bd/2);
-                bookShape.quadraticCurveTo(bw/2, -bd/2, bw/2, -bd/2 + br);
-                bookShape.lineTo(bw/2, bd/2 - br);
-                bookShape.quadraticCurveTo(bw/2, bd/2, bw/2 - br, bd/2);
-                bookShape.lineTo(-bw/2 + br, bd/2);
-                bookShape.quadraticCurveTo(-bw/2, bd/2, -bw/2, bd/2 - br);
-                bookShape.lineTo(-bw/2, -bd/2 + br);
-                bookShape.quadraticCurveTo(-bw/2, -bd/2, -bw/2 + br, -bd/2);
-                
                 const book = new THREE.Mesh(
-                    new THREE.ExtrudeGeometry(bookShape, { 
-                        depth: heights[i], 
-                        bevelEnabled: true, 
-                        bevelThickness: 0.01, 
-                        bevelSize: 0.01, 
-                        bevelSegments: 2 
-                    }),
-                    new THREE.MeshStandardMaterial({ 
-                        color: colors[i],
-                        roughness: 0.6
-                    })
+                    new THREE.ExtrudeGeometry(createRoundedShape(0.6, 0.8, 0.05), {depth:heights[i],bevelEnabled:true,bevelThickness:0.01,bevelSize:0.01,bevelSegments:2}),
+                    new THREE.MeshStandardMaterial({color:colors[i],roughness:0.6})
                 );
                 book.rotation.x = -Math.PI / 2;
-                const rotation = (Math.random() - 0.5) * 0.2;
-                book.rotation.z = rotation;
+                book.rotation.z = (Math.random() - 0.5) * 0.2;
                 book.position.set(-1.5 + Math.random() * 0.1, currentHeight + heights[i] / 2, -7 + Math.random() * 0.1);
                 book.castShadow = true;
                 booksGroup.add(book);
-
-                // Add outline to each book
                 const bookOutline = addOutlineEffect(book, 1.02);
                 if (bookOutline) {
                     booksGroup.add(bookOutline);
@@ -1208,19 +1697,19 @@
                 scene.fog.color.setHex(0xf5e6d3);
                 
             } else {
-                // Turn lamp OFF
+                // Turn lamp OFF but keep minimal lighting
                 lampLight.intensity = 0;
                 lampHead.material.emissive.setHex(0x000000);
                 lampHead.material.emissiveIntensity = 0;
                 lampRim.material.emissive.setHex(0x000000);
                 lampRim.material.emissiveIntensity = 0;
                 
-                // Make room dark
-                ambientLight.intensity = 0.15;
-                sunLight.intensity = 0.2;
-                fillLight.intensity = 0.05;
-                scene.background.setHex(0x1a1a2e);
-                scene.fog.color.setHex(0x1a1a2e);
+                // Dim lighting but keep visibility
+                ambientLight.intensity = 0.3;
+                sunLight.intensity = 0.4;
+                fillLight.intensity = 0.2;
+                scene.background.setHex(0x2a2a3e);
+                scene.fog.color.setHex(0x2a2a3e);
             }
         }
         
@@ -1379,15 +1868,28 @@
             }
             
             // Rounded books on shelves
-            for (let shelfLevel = 1; shelfLevel < 4; shelfLevel++) {
+            // Bookshelf dimensions:
+            // - Sides at shelfX (x=-7) and shelfX+2 (x=-5)
+            // - Shelves width: 2.3, centered at shelfX+1 (x=-6), range: x=-7.15 to x=-4.85
+            // - Shelves depth: 1.5, centered at shelfZ (z=-8), range: z=-8.75 to z=-7.25
+            // - Shelves at y=0, 1, 2, 3, 4 with thickness 0.12
+            
+            for (let shelfLevel = 0; shelfLevel < 4; shelfLevel++) {
+                const shelfY = shelfLevel * 1;  // Shelf base at 0, 1, 2, 3
+                const shelfSurfaceY = shelfY + 0.06; // Top surface - adjusted to account for rotation
+                
                 for (let bookNum = 0; bookNum < 6; bookNum++) {
-                    const bookHeight = 0.6 + Math.random() * 0.3;
+                    const bookHeight = 0.4 + Math.random() * 0.2;  // Book height 0.4-0.6 (shorter)
                     const bookWidth = 0.12;
-                    const bookDepth = 0.25;
+                    const bookDepth = 0.2;  // Book depth/thickness
+                    
+                    // Generate unique book ID (1-24, matching library interface)
+                    const bookIndex = (shelfLevel * 6) + bookNum + 1;
+                    const bookId = `book-${bookIndex}`;
                     
                     // Create rounded book
                     const bookShape = new THREE.Shape();
-                    const br = 0.03;
+                    const br = 0.02;
                     bookShape.moveTo(-bookWidth/2 + br, -bookDepth/2);
                     bookShape.lineTo(bookWidth/2 - br, -bookDepth/2);
                     bookShape.quadraticCurveTo(bookWidth/2, -bookDepth/2, bookWidth/2, -bookDepth/2 + br);
@@ -1398,6 +1900,7 @@
                     bookShape.lineTo(-bookWidth/2, -bookDepth/2 + br);
                     bookShape.quadraticCurveTo(-bookWidth/2, -bookDepth/2, -bookWidth/2 + br, -bookDepth/2);
                     
+                    const bookColor = Math.random() * 0xffffff;
                     const book = new THREE.Mesh(
                         new THREE.ExtrudeGeometry(bookShape, { 
                             depth: bookHeight, 
@@ -1406,19 +1909,41 @@
                             bevelSize: 0.01 
                         }),
                         new THREE.MeshStandardMaterial({ 
-                            color: Math.random() * 0xffffff,
+                            color: bookColor,
                             roughness: 0.7
                         })
                     );
+                    
+                    // Books are extruded vertically when rotated
                     book.rotation.x = -Math.PI / 2;
-                    book.position.set(
-                        shelfX + 0.3 + bookNum * 0.3,
-                        shelfLevel * 1 + bookHeight / 2 + 0.05,
-                        shelfZ + (Math.random() - 0.5) * 0.5
-                    );
-                    book.rotation.z = (Math.random() - 0.5) * 0.3;
+                    book.rotation.z = (Math.random() - 0.5) * 0.05;  // Very slight random tilt
+                    
+                    // Position books on shelf surface
+                    // X: spread across shelf width
+                    const bookX = shelfX + 0.2 + bookNum * 0.3;  // Start at -6.8, spacing 0.3
+                    
+                    // Y: sitting on shelf surface
+                    // When book is rotated -90° on X axis, the extrusion (height) goes up in Y
+                    // Book depth becomes width, so we need: shelfSurface + bookDepth/2
+                    const bookY = shelfSurfaceY + bookDepth / 2;
+                    
+                    // Z: within shelf depth
+                    const bookZ = shelfZ + (Math.random() - 0.5) * 0.4;
+                    
+                    book.position.set(bookX, bookY, bookZ);
                     book.castShadow = true;
+                    
+                    // Mark book as clickable with unique ID
+                    book.userData = {
+                        name: 'Library Book',
+                        isBook: true,
+                        bookId: bookId,
+                        bookColor: bookColor,
+                        description: 'Click to open and write your notes 📖'
+                    };
+                    
                     shelfGroup.add(book);
+                    clickableObjects.push(book); // Make each book individually clickable
 
                     // Add outline to each book
                     const bookOutline = addOutlineEffect(book, 1.03);
@@ -1427,6 +1952,10 @@
                     }
                 }
             }
+            
+            // Store zoom target position for bookshelf
+            shelfGroup.userData.zoomTarget = new THREE.Vector3(shelfX + 1, 2, shelfZ + 3);
+            shelfGroup.userData.zoomDistance = 5;
             
             clickableObjects.push(shelfGroup);
             return shelfGroup;
@@ -1437,58 +1966,24 @@
             const rugGroup = new THREE.Group();
             rugGroup.userData = { name: 'Cozy Rug', description: 'Soft and warm underfoot 🧶' };
             
-            // Create rounded rug shape
-            const rugShape = new THREE.Shape();
-            const rw = 4, rd = 3, rr = 0.4;
-            rugShape.moveTo(-rw/2 + rr, -rd/2);
-            rugShape.lineTo(rw/2 - rr, -rd/2);
-            rugShape.quadraticCurveTo(rw/2, -rd/2, rw/2, -rd/2 + rr);
-            rugShape.lineTo(rw/2, rd/2 - rr);
-            rugShape.quadraticCurveTo(rw/2, rd/2, rw/2 - rr, rd/2);
-            rugShape.lineTo(-rw/2 + rr, rd/2);
-            rugShape.quadraticCurveTo(-rw/2, rd/2, -rw/2, rd/2 - rr);
-            rugShape.lineTo(-rw/2, -rd/2 + rr);
-            rugShape.quadraticCurveTo(-rw/2, -rd/2, -rw/2 + rr, -rd/2);
-            
-            const rugGeometry = new THREE.ShapeGeometry(rugShape);
             const rug = new THREE.Mesh(
-                rugGeometry,
-                new THREE.MeshStandardMaterial({ 
-                    color: 0xcd5c5c,
-                    roughness: 0.95
-                })
+                new THREE.ShapeGeometry(createRoundedShape(4, 3, 0.4)),
+                new THREE.MeshStandardMaterial({color:0xcd5c5c,roughness:0.95})
             );
             rug.rotation.x = -Math.PI / 2;
             rug.position.set(0, 0.01, -6);
             rug.receiveShadow = true;
             rugGroup.add(rug);
 
-            // Add outline to rug
             const rugOutline = addOutlineEffect(rug, 1.02);
             if (rugOutline) {
-                rugOutline.position.y = 0.005; // Slightly lower to prevent z-fighting
+                rugOutline.position.y = 0.005;
                 rugGroup.add(rugOutline);
             }
             
-            // Rounded pattern with softer edges
-            const patternShape = new THREE.Shape();
-            const pw = 3.5, pd = 2.5, pr = 0.3;
-            patternShape.moveTo(-pw/2 + pr, -pd/2);
-            patternShape.lineTo(pw/2 - pr, -pd/2);
-            patternShape.quadraticCurveTo(pw/2, -pd/2, pw/2, -pd/2 + pr);
-            patternShape.lineTo(pw/2, pd/2 - pr);
-            patternShape.quadraticCurveTo(pw/2, pd/2, pw/2 - pr, pd/2);
-            patternShape.lineTo(-pw/2 + pr, pd/2);
-            patternShape.quadraticCurveTo(-pw/2, pd/2, -pw/2, pd/2 - pr);
-            patternShape.lineTo(-pw/2, -pd/2 + pr);
-            patternShape.quadraticCurveTo(-pw/2, -pd/2, -pw/2 + pr, -pd/2);
-            
             const pattern = new THREE.Mesh(
-                new THREE.ShapeGeometry(patternShape),
-                new THREE.MeshStandardMaterial({ 
-                    color: 0x8b4513,
-                    roughness: 0.95
-                })
+                new THREE.ShapeGeometry(createRoundedShape(3.5, 2.5, 0.3)),
+                new THREE.MeshStandardMaterial({color:0x8b4513,roughness:0.95})
             );
             pattern.rotation.x = -Math.PI / 2;
             pattern.position.set(0, 0.02, -6);
@@ -1611,24 +2106,8 @@
             frontCover.castShadow = true;
             notebookGroup.add(frontCover);
             
-            // Pages (white, slightly smaller)
-            const pagesShape = new THREE.Shape();
-            const pw = 0.75, ph = 1.05, pr = 0.06;
-            pagesShape.moveTo(-pw/2 + pr, -ph/2);
-            pagesShape.lineTo(pw/2 - pr, -ph/2);
-            pagesShape.quadraticCurveTo(pw/2, -ph/2, pw/2, -ph/2 + pr);
-            pagesShape.lineTo(pw/2, ph/2 - pr);
-            pagesShape.quadraticCurveTo(pw/2, ph/2, pw/2 - pr, ph/2);
-            pagesShape.lineTo(-pw/2 + pr, ph/2);
-            pagesShape.quadraticCurveTo(-pw/2, ph/2, -pw/2, ph/2 - pr);
-            pagesShape.lineTo(-pw/2, -ph/2 + pr);
-            pagesShape.quadraticCurveTo(-pw/2, -ph/2, -pw/2 + pr, -ph/2);
-            
             const pages = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(pagesShape, { 
-                    depth: 0.08, 
-                    bevelEnabled: false 
-                }),
+                new THREE.ExtrudeGeometry(createRoundedShape(0.75, 1.05, 0.06), {depth:0.08,bevelEnabled:false}),
                 materials.paper
             );
             pages.rotation.x = -Math.PI / 2;
@@ -1636,14 +2115,9 @@
             pages.position.set(-0.2, 1.6, -6.3);
             notebookGroup.add(pages);
             
-            // Add subtle label on cover
-            const labelGeometry = new THREE.CircleGeometry(0.15, 16);
             const label = new THREE.Mesh(
-                labelGeometry,
-                new THREE.MeshStandardMaterial({ 
-                    color: 0xffd700,
-                    roughness: 0.5
-                })
+                new THREE.CircleGeometry(0.15, 16),
+                new THREE.MeshStandardMaterial({color:0xffd700,roughness:0.5})
             );
             label.rotation.x = -Math.PI / 2;
             label.position.set(-0.2, 1.61, -6.3);
@@ -1692,74 +2166,39 @@
             return notebookGroup;
         }
         
-        // Posters/artwork on wall
         function createWallArt() {
             const artGroup = new THREE.Group();
-            artGroup.userData.isWallMounted = true; // Mark as wall-mounted object
-            
-            // Poster 1 - rounded corners
-            const poster1Shape = new THREE.Shape();
-            const p1w = 1.5, p1h = 2, p1r = 0.1;
-            poster1Shape.moveTo(-p1w/2 + p1r, -p1h/2);
-            poster1Shape.lineTo(p1w/2 - p1r, -p1h/2);
-            poster1Shape.quadraticCurveTo(p1w/2, -p1h/2, p1w/2, -p1h/2 + p1r);
-            poster1Shape.lineTo(p1w/2, p1h/2 - p1r);
-            poster1Shape.quadraticCurveTo(p1w/2, p1h/2, p1w/2 - p1r, p1h/2);
-            poster1Shape.lineTo(-p1w/2 + p1r, p1h/2);
-            poster1Shape.quadraticCurveTo(-p1w/2, p1h/2, -p1w/2, p1h/2 - p1r);
-            poster1Shape.lineTo(-p1w/2, -p1h/2 + p1r);
-            poster1Shape.quadraticCurveTo(-p1w/2, -p1h/2, -p1w/2 + p1r, -p1h/2);
+            artGroup.userData.isWallMounted = true;
             
             const poster1 = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(poster1Shape, { 
-                    depth: 0.03, 
-                    bevelEnabled: true, 
-                    bevelThickness: 0.01, 
-                    bevelSize: 0.01, 
-                    bevelSegments: 2 
-                }),
-                new THREE.MeshStandardMaterial({ 
-                    color: 0xff69b4,
-                    roughness: 0.8
-                })
+                new THREE.ExtrudeGeometry(createRoundedShape(1.5, 2, 0.1), {depth:0.03,bevelEnabled:true,bevelThickness:0.01,bevelSize:0.01,bevelSegments:2}),
+                new THREE.MeshStandardMaterial({color:0xff69b4,roughness:0.8})
             );
             poster1.position.set(-3, 3, -9.87);
             poster1.castShadow = true;
-            poster1.userData = { name: 'Inspirational Poster', description: 'Stay focused! ✨' };
+            poster1.userData = {name:'Inspirational Poster',description:'Click to edit your motivational message! ✨',isPoster:true};
             artGroup.add(poster1);
             clickableObjects.push(poster1);
             
-            // Poster 2 - rounded corners
-            const poster2Shape = new THREE.Shape();
-            const p2w = 1.2, p2h = 1.8, p2r = 0.08;
-            poster2Shape.moveTo(-p2w/2 + p2r, -p2h/2);
-            poster2Shape.lineTo(p2w/2 - p2r, -p2h/2);
-            poster2Shape.quadraticCurveTo(p2w/2, -p2h/2, p2w/2, -p2h/2 + p2r);
-            poster2Shape.lineTo(p2w/2, p2h/2 - p2r);
-            poster2Shape.quadraticCurveTo(p2w/2, p2h/2, p2w/2 - p2r, p2h/2);
-            poster2Shape.lineTo(-p2w/2 + p2r, p2h/2);
-            poster2Shape.quadraticCurveTo(-p2w/2, p2h/2, -p2w/2, p2h/2 - p2r);
-            poster2Shape.lineTo(-p2w/2, -p2h/2 + p2r);
-            poster2Shape.quadraticCurveTo(-p2w/2, -p2h/2, -p2w/2 + p2r, -p2h/2);
+            const posterData = loadPosterData();
+            if (posterData.text) createPosterText(poster1, posterData.text, posterData.textSize);
+            window.inspirationalPoster = poster1;
             
             const poster2 = new THREE.Mesh(
-                new THREE.ExtrudeGeometry(poster2Shape, { 
-                    depth: 0.03, 
-                    bevelEnabled: true, 
-                    bevelThickness: 0.01, 
-                    bevelSize: 0.01, 
-                    bevelSegments: 2 
-                }),
-                new THREE.MeshStandardMaterial({ 
-                    color: 0x87ceeb,
-                    roughness: 0.8
-                })
+                new THREE.ExtrudeGeometry(createRoundedShape(1.2, 1.8, 0.08), {depth:0.03,bevelEnabled:true,bevelThickness:0.01,bevelSize:0.01,bevelSegments:2}),
+                new THREE.MeshStandardMaterial({color:0x87ceeb,roughness:0.8})
             );
             poster2.position.set(3, 3.5, -9.87);
             poster2.castShadow = true;
-            poster2.userData = { name: 'Music Poster', description: 'Lofi beats to study/relax to 🎶' };
+            poster2.userData = {name:'Custom Poster',description:'Click to upload your own image! 🖼️',isImagePoster:true};
             artGroup.add(poster2);
             clickableObjects.push(poster2);
+            
+            // Store reference for image poster
+            window.imagePoster = poster2;
+            
+            // Load saved image if exists
+            loadPosterImage(poster2);
             
             return artGroup;
         }
@@ -2464,8 +2903,9 @@
                 bedGroup.add(outline);
             }
 
-            // Position the bed on the left side of the room
-            bedGroup.position.set(-6, 0, -5);
+            // Position the bed in the back right corner, away from all furniture
+            // Bookshelf is at (-7, y, -8), Desk is at (0, y, -7), so placing bed at right back corner
+            bedGroup.position.set(6, 0, -8);
 
             clickableObjects.push(bedGroup);
             return bedGroup;
@@ -2500,8 +2940,9 @@
         
         // Add mode indicator to UI
         const modeIndicator = document.createElement('div');
+        modeIndicator.id = 'mode-indicator';
         modeIndicator.style.position = 'absolute';
-        modeIndicator.style.top = '60px';
+        modeIndicator.style.top = '20px';
         modeIndicator.style.right = '20px';
         modeIndicator.style.padding = '10px 20px';
         modeIndicator.style.background = 'rgba(0, 0, 0, 0.7)';
@@ -2509,11 +2950,47 @@
         modeIndicator.style.borderRadius = '5px';
         modeIndicator.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
         modeIndicator.style.zIndex = '100';
+        modeIndicator.style.fontSize = '14px';
+        modeIndicator.style.fontWeight = '600';
+        modeIndicator.style.display = 'flex';
+        modeIndicator.style.alignItems = 'center';
+        modeIndicator.style.gap = '8px';
+        modeIndicator.style.transition = 'all 0.6s ease-in-out, background-color 0.5s ease';
+        modeIndicator.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
         document.body.appendChild(modeIndicator);
         
         function updateModeIndicator() {
-            modeIndicator.textContent = isViewMode ? '🎥 View Mode' : '✋ Drag Mode';
-            modeIndicator.style.background = isViewMode ? 'rgba(0, 128, 255, 0.7)' : 'rgba(255, 128, 0, 0.7)';
+            const icon = isViewMode ? '🎥' : '✋';
+            const text = isViewMode ? 'View Mode' : 'Drag Mode';
+            
+            // Create icon and text elements
+            modeIndicator.innerHTML = `
+                <span style="font-size: 18px;">${icon}</span>
+                <span>${text}</span>
+            `;
+            
+            modeIndicator.style.background = isViewMode ? 'rgba(0, 128, 255, 0.8)' : 'rgba(255, 128, 0, 0.8)';
+            
+            // Position based on mode
+            const controlPanel = document.getElementById('control-panel');
+            if (isViewMode) {
+                // View mode - top right corner
+                modeIndicator.style.top = '20px';
+                controlPanel.style.top = '20px'; // Reset control panel position
+                controlPanel.classList.remove('visible');
+            } else {
+                // Drag mode - show control panel first, then position indicator above it
+                controlPanel.classList.add('visible');
+                
+                // Use setTimeout to ensure control panel is rendered before measuring
+                // Increased delay to match smoother animation
+                setTimeout(() => {
+                    const modeIndicatorHeight = modeIndicator.offsetHeight || 0;
+                    // Mode indicator stays at top, control panel moves below it
+                    modeIndicator.style.top = '20px';
+                    controlPanel.style.top = (20 + modeIndicatorHeight + 10) + 'px';
+                }, 50);
+            }
         }
         updateModeIndicator();
         
@@ -2595,6 +3072,11 @@
                     isDragging = false;
                 }
             }
+            
+            // Zoom out from bookshelf with X or Escape
+            if ((e.key.toLowerCase() === 'x' || e.key === 'Escape') && isZoomedIntoBookshelf) {
+                zoomOutFromBookshelf();
+            }
         });
         
         // General hover detection
@@ -2641,7 +3123,7 @@
                             }
                         });
                         
-                        // Only show hover tooltip in drag mode
+                        // Only show hover tooltip in drag mode, not view mode
                         if (!isViewMode) {
                             const objectInfo = document.getElementById('object-info');
                             objectInfo.innerHTML = object.userData.description || 'Interactive Object';
@@ -2655,6 +3137,8 @@
                             objectInfo.style.pointerEvents = 'none';
                             objectInfo.style.textShadow = '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff';
                             objectInfo.style.backgroundColor = 'transparent';
+                        } else {
+                            document.body.style.cursor = 'pointer'; // Just show pointer cursor in view mode
                         }
                         
                         // Handle blob specific hover behavior
@@ -2795,9 +3279,31 @@
         renderer.domElement.addEventListener('mousemove', (e) => {
             if (!isMouseDown) return;
             
+            // Handle panning first (right mouse button)
+            if (isPanning) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                const panSpeed = 0.01;
+                const right = new THREE.Vector3();
+                const up = new THREE.Vector3(0, 1, 0);
+                camera.getWorldDirection(right);
+                right.cross(up).normalize();
+                
+                const panOffset = new THREE.Vector3();
+                panOffset.add(right.multiplyScalar(-deltaX * panSpeed));
+                panOffset.add(up.multiplyScalar(deltaY * panSpeed));
+                
+                camera.position.add(panOffset);
+                cameraTarget.add(panOffset);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+                return; // Don't do anything else while panning
+            }
+            
             if (isViewMode) {
-                // Camera rotation mode
-                if (e.button === 0) {
+                // Camera rotation mode (left click in view mode)
+                if (isDragging && !draggedObject) {
                     const deltaX = e.clientX - previousMousePosition.x;
                     const deltaY = e.clientY - previousMousePosition.y;
                     
@@ -2823,7 +3329,7 @@
             }
             
             // Object drag mode
-            if (!draggedObject) {
+            if (!draggedObject && !isDragging) {
                 return;
             }
             
@@ -2876,50 +3382,6 @@
                 }
                 
                 return; // Don't rotate camera while dragging object
-            }
-            
-            if (isDragging && !draggedObject) {
-                const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-                
-                // Rotate camera around target when not dragging objects
-                const rotationSpeed = 0.005;
-                const theta = deltaX * rotationSpeed;
-                const phi = deltaY * rotationSpeed;
-                
-                // Calculate new position
-                const offset = camera.position.clone().sub(cameraTarget);
-                const spherical = new THREE.Spherical().setFromVector3(offset);
-                
-                spherical.theta -= theta;
-                spherical.phi -= phi;
-                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
-                
-                offset.setFromSpherical(spherical);
-                camera.position.copy(cameraTarget).add(offset);
-                camera.lookAt(cameraTarget);
-                
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            }
-            
-            if (isPanning) {
-                const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-                
-                const panSpeed = 0.01;
-                const right = new THREE.Vector3();
-                const up = new THREE.Vector3(0, 1, 0);
-                camera.getWorldDirection(right);
-                right.cross(up).normalize();
-                
-                const panOffset = new THREE.Vector3();
-                panOffset.add(right.multiplyScalar(-deltaX * panSpeed));
-                panOffset.add(up.multiplyScalar(deltaY * panSpeed));
-                
-                camera.position.add(panOffset);
-                cameraTarget.add(panOffset);
-                
-                previousMousePosition = { x: e.clientX, y: e.clientY };
             }
         });
         
@@ -3022,6 +3484,10 @@
                 mouse.x = -9999;
                 mouse.y = -9999;
                 raycaster.setFromCamera(mouse, camera);
+            } else {
+                // No dragged object - just reset states
+                isDragging = false;
+                isPanning = false;
             }
         });
         
@@ -3032,7 +3498,7 @@
         // Zoom with mouse wheel
         renderer.domElement.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const zoomSpeed = 0.001;
+            const zoomSpeed = 0.003;  // Increased from 0.001 for more sensitive zooming
             const delta = e.deltaY * zoomSpeed;
             
             const offset = camera.position.clone().sub(cameraTarget);
@@ -3051,8 +3517,8 @@
         });
         
         renderer.domElement.addEventListener('click', (e) => {
-            // Don't show info in drag mode
-            if (isDragMode) return;
+            // Only show info in view mode
+            if (!isViewMode) return;
             
             // Check if this was a drag vs a click
             const distance = Math.sqrt(
@@ -3061,12 +3527,13 @@
             );
             
             if (distance > 5) {
-                // Was a drag - immediately make static if touching ground or objects
-                if (draggedObject) {
-                    makeObjectStatic(draggedObject);
-                }
-                return;
-            }            raycaster.setFromCamera(mouse, camera);
+                return; // Was a drag, not a click
+            }
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(clickableObjects, true);            if (intersects.length > 0) {
                 // Find the parent group with userData
                 let object = intersects[0].object;
@@ -3075,16 +3542,41 @@
                 }
                 
                 if (object && object.userData.name) {
+                    // Check if it's a library book - only clickable when zoomed into bookshelf
+                    if (object.userData.isBook) {
+                        if (isZoomedIntoBookshelf) {
+                            openLibraryBook(object.userData.bookId);
+                            // Don't show info box - modal opens instead
+                        }
+                        return; // Don't process other actions for books
+                    }
                     // Check if it's the notebook
-                    if (object.userData.isNotebook) {
+                    else if (object.userData.isNotebook) {
                         openTodoList();
-                        showObjectInfo(object.userData.name, object.userData.description);
+                        // Don't show info box - modal opens instead
+                    }
+                    // Check if it's the text poster
+                    else if (object.userData.isPoster) {
+                        openPosterEditor();
+                        // Don't show info box - modal opens instead
+                    }
+                    // Check if it's the image poster
+                    else if (object.userData.isImagePoster) {
+                        openImageUploader();
+                        // Don't show info box - file picker opens instead
                     }
                     // Check if it's the lamp
                     else if (object.userData.isLamp) {
                         toggleLamp();
                         const status = lampIsOn ? 'ON' : 'OFF';
                         showObjectInfo(object.userData.name, `Lamp is now ${status} 💡`);
+                    }
+                    // Check if it's the bookshelf - zoom in without showing info
+                    else if (object.userData.name === 'Bookshelf') {
+                        if (!isZoomedIntoBookshelf) {
+                            zoomToObject(object);
+                            // Don't show info box - just zoom in
+                        }
                     } else {
                         showObjectInfo(object.userData.name, object.userData.description);
                         // Animate object (bounce)
@@ -3135,7 +3627,7 @@
             addNextChar();
         }
         
-        function showObjectInfo(name, description) {
+        function showObjectInfo(name, description, onTextComplete) {
             const infoDiv = document.getElementById('object-info');
             
             // Only show text box style in view mode
@@ -3158,6 +3650,11 @@
                 
                 // Show text gradually
                 showTextGradually(text, infoDiv, () => {
+                    // Execute custom callback if provided
+                    if (onTextComplete) {
+                        onTextComplete();
+                    }
+                    
                     // Set timeout to hide after text finishes
                     window.hideInfoTimeout = setTimeout(() => {
                         hideObjectInfo();
@@ -3231,6 +3728,103 @@
                 startY: originalY,
                 time: 0
             });
+        }
+        
+        // Camera zoom animation state
+        let isZooming = false;
+        let zoomAnimation = null;
+        let isZoomedIntoBookshelf = false; // Track if we're zoomed into bookshelf
+        
+        // Zoom to bookshelf
+        function zoomToObject(object) {
+            // Check if it's the bookshelf
+            if (object.userData.name === 'Bookshelf') {
+                if (isZooming || isZoomedIntoBookshelf) return;
+                
+                const targetPos = object.userData.zoomTarget || object.position.clone();
+                const targetDistance = object.userData.zoomDistance || 4;
+                
+                // Calculate zoom camera position
+                const direction = camera.position.clone().sub(cameraTarget).normalize();
+                const newCameraPos = targetPos.clone().add(direction.multiplyScalar(targetDistance));
+                
+                const startCameraPos = camera.position.clone();
+                const startCameraTarget = cameraTarget.clone();
+                
+                isZooming = true;
+                const zoomDuration = 1500;
+                const startTime = Date.now();
+                
+                function animateZoom() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / zoomDuration, 1);
+                    
+                    // Ease in-out
+                    const eased = progress < 0.5 
+                        ? 2 * progress * progress 
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    
+                    camera.position.lerpVectors(startCameraPos, newCameraPos, eased);
+                    cameraTarget.lerpVectors(startCameraTarget, targetPos, eased);
+                    camera.lookAt(cameraTarget);
+                    
+                    if (progress < 1) {
+                        zoomAnimation = requestAnimationFrame(animateZoom);
+                    } else {
+                        isZooming = false;
+                        zoomAnimation = null;
+                        isZoomedIntoBookshelf = true;
+                        
+                        // Show Edit button
+                        showEditLibraryButton();
+                        
+                        setTimeout(() => {
+                            showNotification('Press X or Escape to zoom out', 'info');
+                        }, 500);
+                    }
+                }
+                
+                animateZoom();
+            }
+        }
+        
+        // Zoom out from bookshelf
+        function zoomOutFromBookshelf() {
+            if (isZooming || !isZoomedIntoBookshelf) return;
+            
+            const startCameraPos = camera.position.clone();
+            const startCameraTarget = cameraTarget.clone();
+            const defaultTarget = new THREE.Vector3(0, 2, -4);
+            const defaultCameraPos = new THREE.Vector3(5, 4, 5);
+            
+            isZooming = true;
+            const zoomDuration = 1500;
+            const startTime = Date.now();
+            
+            function animateZoomOut() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / zoomDuration, 1);
+                
+                const eased = progress < 0.5 
+                    ? 2 * progress * progress 
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                
+                camera.position.lerpVectors(startCameraPos, defaultCameraPos, eased);
+                cameraTarget.lerpVectors(startCameraTarget, defaultTarget, eased);
+                camera.lookAt(cameraTarget);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateZoomOut);
+                } else {
+                    isZooming = false;
+                    isZoomedIntoBookshelf = false;
+                    
+                    // Hide Edit button
+                    hideEditLibraryButton();
+                }
+            }
+            
+            animateZoomOut();
         }
         
         // Window resize handler
@@ -3728,9 +4322,908 @@
         // Close modal with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                closeTodoList();
+                const todoModal = document.getElementById('todo-modal');
+                if (todoModal.style.display === 'block') {
+                    closeTodoList();
+                    return; // Prevent other Escape handlers
+                }
             }
         });
+
+        // ============================================
+        // UNDO/REDO SYSTEM & SCENE CONTROL
+        // ============================================
+        
+        // State management for undo/redo
+        const sceneHistory = {
+            states: [],
+            currentIndex: -1,
+            maxHistory: 50,
+            hasUnsavedChanges: false,
+            savedState: null
+        };
+        
+        // Capture the current state of all objects
+        function captureSceneState() {
+            const state = {};
+            clickableObjects.forEach(obj => {
+                if (obj.userData.name) {
+                    state[obj.userData.name] = {
+                        position: obj.position.clone(),
+                        rotation: obj.rotation.clone(),
+                        scale: obj.scale.clone()
+                    };
+                }
+            });
+            return state;
+        }
+        
+        // Save initial state
+        const initialState = captureSceneState();
+        sceneHistory.savedState = JSON.parse(JSON.stringify(initialState));
+        
+        // Add a new state to history
+        function pushState(state) {
+            // Remove any states after current index (when new action is made after undo)
+            sceneHistory.states = sceneHistory.states.slice(0, sceneHistory.currentIndex + 1);
+            
+            // Add new state
+            sceneHistory.states.push(JSON.parse(JSON.stringify(state)));
+            sceneHistory.currentIndex++;
+            
+            // Limit history size
+            if (sceneHistory.states.length > sceneHistory.maxHistory) {
+                sceneHistory.states.shift();
+                sceneHistory.currentIndex--;
+            }
+            
+            // Mark as having unsaved changes
+            sceneHistory.hasUnsavedChanges = true;
+            updateControlButtons();
+        }
+        
+        // Restore scene to a saved state
+        function restoreSceneState(state) {
+            clickableObjects.forEach(obj => {
+                if (obj.userData.name && state[obj.userData.name]) {
+                    const savedObj = state[obj.userData.name];
+                    obj.position.copy(savedObj.position);
+                    obj.rotation.set(savedObj.rotation._x, savedObj.rotation._y, savedObj.rotation._z);
+                    obj.scale.copy(savedObj.scale);
+                    
+                    // Update blob base position if it's the blob
+                    if (obj.userData.name === 'UwU Blob') {
+                        obj.userData.basePosition = obj.position.clone();
+                    }
+                }
+                
+                // Restore book colors from userData (not from state)
+                if (obj.userData && obj.userData.isBook && obj.userData.bookColor !== undefined) {
+                    if (obj.material && obj.material.color) {
+                        obj.material.color.setHex(obj.userData.bookColor);
+                    }
+                }
+            });
+        }
+        
+        // Undo last action
+        function undo() {
+            if (sceneHistory.currentIndex > 0) {
+                sceneHistory.currentIndex--;
+                restoreSceneState(sceneHistory.states[sceneHistory.currentIndex]);
+                updateControlButtons();
+            }
+        }
+        
+        // Redo last undone action
+        function redo() {
+            if (sceneHistory.currentIndex < sceneHistory.states.length - 1) {
+                sceneHistory.currentIndex++;
+                restoreSceneState(sceneHistory.states[sceneHistory.currentIndex]);
+                updateControlButtons();
+            }
+        }
+        
+        // Save current layout to localStorage
+        function saveLayout() {
+            const currentState = captureSceneState();
+            localStorage.setItem('lofi-room-layout', JSON.stringify(currentState));
+            sceneHistory.savedState = JSON.parse(JSON.stringify(currentState));
+            sceneHistory.hasUnsavedChanges = false;
+            updateControlButtons();
+            
+            // Show confirmation
+            showNotification('✓ Layout saved!', 'success');
+        }
+        
+        // Discard changes and restore to last saved state
+        function discardChanges() {
+            if (confirm('Discard all unsaved changes?')) {
+                restoreSceneState(sceneHistory.savedState);
+                sceneHistory.states = [JSON.parse(JSON.stringify(sceneHistory.savedState))];
+                sceneHistory.currentIndex = 0;
+                sceneHistory.hasUnsavedChanges = false;
+                updateControlButtons();
+                showNotification('Changes discarded', 'info');
+            }
+        }
+        
+        // Restart scene to initial state
+        function restartScene() {
+            if (confirm('Reset the entire scene to its original state? All changes will be lost.')) {
+                // Clear all localStorage data
+                localStorage.removeItem('lofi-room-layout');
+                localStorage.removeItem('library-books');
+                localStorage.removeItem('inspirational-poster');
+                localStorage.removeItem('custom-poster-image');
+                localStorage.removeItem('lofi-room-todos');
+                
+                // Restore scene to initial state
+                restoreSceneState(initialState);
+                sceneHistory.states = [JSON.parse(JSON.stringify(initialState))];
+                sceneHistory.currentIndex = 0;
+                sceneHistory.savedState = JSON.parse(JSON.stringify(initialState));
+                sceneHistory.hasUnsavedChanges = false;
+                
+                // Clear poster text
+                if (window.inspirationalPoster) {
+                    const existingText = window.inspirationalPoster.children.find(child => child.userData.isPosterText);
+                    if (existingText) {
+                        window.inspirationalPoster.remove(existingText);
+                    }
+                }
+                
+                // Clear poster image
+                if (window.imagePoster) {
+                    const existingImage = window.imagePoster.children.find(child => child.userData.isPosterImage);
+                    if (existingImage) {
+                        window.imagePoster.remove(existingImage);
+                    }
+                }
+                
+                // Reset all book titles and content
+                clickableObjects.forEach(obj => {
+                    if (obj.userData && obj.userData.isBook) {
+                        obj.userData.bookTitle = '';
+                        obj.userData.description = 'Click to open and write your notes 📖';
+                    }
+                });
+                
+                updateControlButtons();
+                showNotification('Scene restarted - all data cleared', 'info');
+                
+                // Reload page to ensure clean state
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+        
+        // Update button states
+        function updateControlButtons() {
+            const undoBtn = document.getElementById('undo-btn');
+            const redoBtn = document.getElementById('redo-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const discardBtn = document.getElementById('discard-btn');
+            const indicator = document.getElementById('changes-indicator');
+            
+            // Undo button
+            undoBtn.disabled = sceneHistory.currentIndex <= 0;
+            
+            // Redo button
+            redoBtn.disabled = sceneHistory.currentIndex >= sceneHistory.states.length - 1;
+            
+            // Save and discard buttons
+            const hasChanges = sceneHistory.hasUnsavedChanges;
+            saveBtn.disabled = !hasChanges;
+            discardBtn.disabled = !hasChanges;
+            
+            // Changes indicator
+            if (hasChanges) {
+                indicator.classList.add('visible');
+            } else {
+                indicator.classList.remove('visible');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.position = 'fixed';
+            notification.style.top = '100px';
+            notification.style.right = '20px';
+            notification.style.padding = '15px 25px';
+            notification.style.borderRadius = '8px';
+            notification.style.color = 'white';
+            notification.style.fontWeight = 'bold';
+            notification.style.zIndex = '1000';
+            notification.style.animation = 'slideInRight 0.3s ease-out';
+            notification.textContent = message;
+            
+            if (type === 'success') {
+                notification.style.background = 'rgba(100, 255, 100, 0.9)';
+            } else if (type === 'error') {
+                notification.style.background = 'rgba(255, 100, 100, 0.9)';
+            } else {
+                notification.style.background = 'rgba(100, 150, 255, 0.9)';
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+        
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Load saved layout on startup
+        const savedLayout = localStorage.getItem('lofi-room-layout');
+        if (savedLayout) {
+            try {
+                const state = JSON.parse(savedLayout);
+                restoreSceneState(state);
+                sceneHistory.savedState = state;
+                sceneHistory.states = [JSON.parse(JSON.stringify(state))];
+                sceneHistory.currentIndex = 0;
+                showNotification('Layout loaded', 'success');
+            } catch (e) {
+                console.error('Failed to load saved layout:', e);
+            }
+        } else {
+            // Initialize with current state
+            sceneHistory.states = [JSON.parse(JSON.stringify(initialState))];
+            sceneHistory.currentIndex = 0;
+        }
+        
+        // Track object movement for undo/redo
+        let objectPreMoveState = null;
+        
+        // Capture state before dragging starts
+        const originalMouseDownHandler = renderer.domElement.onmousedown;
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (!isViewMode && e.button === 0) {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(clickableObjects, true);
+                
+                if (intersects.length > 0) {
+                    let object = intersects[0].object;
+                    while (object && !object.userData.name) {
+                        object = object.parent;
+                    }
+                    if (object && object.userData.name) {
+                        objectPreMoveState = captureSceneState();
+                    }
+                }
+            }
+        }, true);
+        
+        // Save state after dragging ends (when object is released)
+        const originalMouseUpHandler = renderer.domElement.onmouseup;
+        renderer.domElement.addEventListener('mouseup', (e) => {
+            if (draggedObject && objectPreMoveState) {
+                const postMoveState = captureSceneState();
+                
+                // Check if object actually moved
+                const prePos = objectPreMoveState[draggedObject.userData.name]?.position;
+                const postPos = postMoveState[draggedObject.userData.name]?.position;
+                
+                if (prePos && postPos && !prePos.equals(postPos)) {
+                    pushState(postMoveState);
+                }
+                
+                objectPreMoveState = null;
+            }
+        }, true);
+        
+        // Event listeners for control buttons
+        document.getElementById('restart-btn').addEventListener('click', restartScene);
+        document.getElementById('undo-btn').addEventListener('click', undo);
+        document.getElementById('redo-btn').addEventListener('click', redo);
+        document.getElementById('save-btn').addEventListener('click', saveLayout);
+        document.getElementById('discard-btn').addEventListener('click', discardChanges);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Z for undo
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+            // Ctrl+Y or Ctrl+Shift+Z for redo
+            if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+                e.preventDefault();
+                redo();
+            }
+            // Ctrl+S for save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveLayout();
+            }
+        });
+        
+        // Initial button state update
+        updateControlButtons();
+
+        // ============================================
+        // LIBRARY BOOK FUNCTIONALITY
+        // ============================================
+        
+        let currentBookId = null;
+        
+        // Load book data from localStorage
+        function loadBookData(bookId) {
+            const books = JSON.parse(localStorage.getItem('library-books') || '{}');
+            return books[bookId] || { title: '', content: '' };
+        }
+        
+        // Save book data to localStorage
+        function saveBookData(bookId, title, content) {
+            const books = JSON.parse(localStorage.getItem('library-books') || '{}');
+            books[bookId] = { title, content };
+            localStorage.setItem('library-books', JSON.stringify(books));
+            
+            // Update the book spine with title if present
+            updateBookSpine(bookId, title);
+        }
+        
+        // Update book spine with title text
+        function updateBookSpine(bookId, title) {
+            // Find the book object in the scene
+            const book = clickableObjects.find(obj => obj.userData && obj.userData.bookId === bookId);
+            if (book && title) {
+                // Store title in userData for display
+                book.userData.bookTitle = title;
+                // Update description to show title
+                book.userData.description = title ? `"${title}" - Click to read 📖` : 'Click to open and write your notes 📖';
+            }
+        }
+        
+        // Open library book modal
+        function openLibraryBook(bookId) {
+            currentBookId = bookId;
+            const bookData = loadBookData(bookId);
+            
+            const modal = document.getElementById('book-modal');
+            const overlay = document.getElementById('book-overlay');
+            const titleInput = document.getElementById('book-title-input');
+            const contentTextarea = document.getElementById('book-content-textarea');
+            
+            // Load saved data
+            titleInput.value = bookData.title;
+            contentTextarea.value = bookData.content;
+            updateCharCount();
+            
+            // Show modal
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+            
+            // Focus on title if empty, otherwise content
+            setTimeout(() => {
+                if (!bookData.title) {
+                    titleInput.focus();
+                } else {
+                    contentTextarea.focus();
+                }
+            }, 100);
+        }
+        
+        // Close library book modal
+        function closeLibraryBook() {
+            const titleInput = document.getElementById('book-title-input');
+            const contentTextarea = document.getElementById('book-content-textarea');
+            
+            // Save data before closing
+            if (currentBookId) {
+                saveBookData(currentBookId, titleInput.value, contentTextarea.value);
+            }
+            
+            // Hide modal
+            document.getElementById('book-overlay').style.display = 'none';
+            document.getElementById('book-modal').style.display = 'none';
+            
+            currentBookId = null;
+        }
+        
+        // Update character count
+        function updateCharCount() {
+            const contentTextarea = document.getElementById('book-content-textarea');
+            const charCount = document.getElementById('book-char-count');
+            const count = contentTextarea.value.length;
+            charCount.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        }
+        
+        // Event listeners for book modal
+        document.getElementById('close-book-btn').addEventListener('click', closeLibraryBook);
+        
+        document.getElementById('book-overlay').addEventListener('click', closeLibraryBook);
+        
+        document.getElementById('book-content-textarea').addEventListener('input', updateCharCount);
+        
+        // Auto-save title as user types
+        document.getElementById('book-title-input').addEventListener('input', (e) => {
+            if (currentBookId) {
+                const contentTextarea = document.getElementById('book-content-textarea');
+                saveBookData(currentBookId, e.target.value, contentTextarea.value);
+                // Fast update only this book card (no full refresh)
+                updateLibraryBookCard(currentBookId);
+            }
+        });
+        
+        // Auto-save content as user types (debounced)
+        let autoSaveTimeout;
+        document.getElementById('book-content-textarea').addEventListener('input', (e) => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                if (currentBookId) {
+                    const titleInput = document.getElementById('book-title-input');
+                    saveBookData(currentBookId, titleInput.value, e.target.value);
+                    // Fast update only this book card (no full refresh)
+                    updateLibraryBookCard(currentBookId);
+                }
+            }, 200); // Reduced from 500ms to 200ms for faster response
+        });
+        
+        // Close book modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const bookModal = document.getElementById('book-modal');
+                if (bookModal.style.display === 'block') {
+                    closeLibraryBook();
+                    return; // Prevent other Escape handlers
+                }
+            }
+        });
+        
+        // Load all book titles on startup and update spines
+        window.addEventListener('load', () => {
+            const books = JSON.parse(localStorage.getItem('library-books') || '{}');
+            Object.keys(books).forEach(bookId => {
+                if (books[bookId].title) {
+                    updateBookSpine(bookId, books[bookId].title);
+                }
+            });
+        });
+
+        // ============= POSTER EDITOR FUNCTIONS =============
+        
+        // Load poster data from localStorage
+        function loadPosterData() {
+            const saved = localStorage.getItem('inspirational-poster');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return { text: '', textSize: 0.3 };
+        }
+        
+        // Save poster data to localStorage
+        function savePosterData(text, textSize) {
+            const data = { text, textSize };
+            localStorage.setItem('inspirational-poster', JSON.stringify(data));
+        }
+        
+        // Create text mesh for poster
+        function createPosterText(poster, text, textSize) {
+            // Remove existing text if any
+            const existingText = poster.children.find(child => child.userData.isPosterText);
+            if (existingText) {
+                poster.remove(existingText);
+            }
+            
+            if (!text) return;
+            
+            // Create canvas for text
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 512;
+            
+            // Fill background (transparent)
+            context.fillStyle = 'rgba(0, 0, 0, 0)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Set text properties
+            context.fillStyle = '#ffffff';
+            context.font = 'bold 48px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            context.shadowBlur = 8;
+            context.shadowOffsetX = 2;
+            context.shadowOffsetY = 2;
+            
+            // Word wrap text
+            const maxWidth = canvas.width - 40;
+            const lineHeight = 56;
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+            
+            for (let i = 1; i < words.length; i++) {
+                const testLine = currentLine + ' ' + words[i];
+                const metrics = context.measureText(testLine);
+                if (metrics.width > maxWidth) {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            lines.push(currentLine);
+            
+            // Draw text centered
+            const startY = (canvas.height - (lines.length * lineHeight)) / 2 + lineHeight / 2;
+            lines.forEach((line, index) => {
+                context.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+            });
+            
+            // Create texture from canvas
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            
+            // Create text mesh
+            const textMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.5 * textSize / 0.3, 2 * textSize / 0.3),
+                new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true,
+                    side: THREE.DoubleSide
+                })
+            );
+            
+            // Position text slightly in front of poster
+            textMesh.position.z = 0.05;
+            textMesh.userData.isPosterText = true;
+            
+            poster.add(textMesh);
+        }
+        
+        // Open poster editor modal
+        function openPosterEditor() {
+            const posterData = loadPosterData();
+            
+            const modal = document.getElementById('poster-modal');
+            const textInput = document.getElementById('poster-text-input');
+            const sizeSlider = document.getElementById('text-size-slider');
+            const sizeValue = document.getElementById('text-size-value');
+            const charCount = document.getElementById('poster-char-count');
+            
+            // Load saved data
+            textInput.value = posterData.text;
+            sizeSlider.value = posterData.textSize;
+            sizeValue.textContent = posterData.textSize;
+            charCount.textContent = `${posterData.text.length} / 200 characters`;
+            
+            // Show modal
+            modal.classList.add('active');
+            
+            // Focus on text input
+            setTimeout(() => {
+                textInput.focus();
+            }, 100);
+        }
+        
+        // Close poster editor modal
+        function closePosterEditor() {
+            const modal = document.getElementById('poster-modal');
+            const textInput = document.getElementById('poster-text-input');
+            const sizeSlider = document.getElementById('text-size-slider');
+            
+            // Save data
+            const text = textInput.value;
+            const textSize = parseFloat(sizeSlider.value);
+            savePosterData(text, textSize);
+            
+            // Update poster
+            if (window.inspirationalPoster) {
+                createPosterText(window.inspirationalPoster, text, textSize);
+            }
+            
+            // Hide modal
+            modal.classList.remove('active');
+        }
+        
+        // Update poster character count
+        function updatePosterCharCount() {
+            const textInput = document.getElementById('poster-text-input');
+            const charCount = document.getElementById('poster-char-count');
+            const count = textInput.value.length;
+            charCount.textContent = `${count} / 200 characters`;
+        }
+        
+        // Event listeners for poster modal
+        document.getElementById('close-poster-btn').addEventListener('click', closePosterEditor);
+        
+        document.getElementById('poster-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'poster-modal') {
+                closePosterEditor();
+            }
+        });
+        
+        document.getElementById('poster-text-input').addEventListener('input', updatePosterCharCount);
+        
+        // Update text size value display
+        document.getElementById('text-size-slider').addEventListener('input', (e) => {
+            document.getElementById('text-size-value').textContent = e.target.value;
+        });
+        
+        // Auto-save and preview as user types (debounced)
+        let posterAutoSaveTimeout;
+        document.getElementById('poster-text-input').addEventListener('input', (e) => {
+            clearTimeout(posterAutoSaveTimeout);
+            posterAutoSaveTimeout = setTimeout(() => {
+                const textInput = document.getElementById('poster-text-input');
+                const sizeSlider = document.getElementById('text-size-slider');
+                const text = textInput.value;
+                const textSize = parseFloat(sizeSlider.value);
+                
+                savePosterData(text, textSize);
+                if (window.inspirationalPoster) {
+                    createPosterText(window.inspirationalPoster, text, textSize);
+                }
+            }, 300); // Reduced from 500ms to 300ms
+        });
+        
+        // Auto-update when size changes
+        document.getElementById('text-size-slider').addEventListener('input', (e) => {
+            clearTimeout(posterAutoSaveTimeout);
+            posterAutoSaveTimeout = setTimeout(() => {
+                const textInput = document.getElementById('poster-text-input');
+                const text = textInput.value;
+                const textSize = parseFloat(e.target.value);
+                
+                savePosterData(text, textSize);
+                if (window.inspirationalPoster) {
+                    createPosterText(window.inspirationalPoster, text, textSize);
+                }
+            }, 50); // Reduced from 100ms to 50ms for smoother slider interaction
+        });
+        
+        // Close poster modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const posterModal = document.getElementById('poster-modal');
+                if (posterModal.classList.contains('active')) {
+                    closePosterEditor();
+                    return; // Prevent other Escape handlers
+                }
+            }
+        });
+
+        // ============= LIBRARY INTERFACE FUNCTIONS =============
+        
+        // Show/hide edit library button
+        function showEditLibraryButton() {
+            const btn = document.getElementById('edit-library-btn');
+            btn.classList.add('visible');
+        }
+        
+        function hideEditLibraryButton() {
+            const btn = document.getElementById('edit-library-btn');
+            btn.classList.remove('visible');
+        }
+        
+        // Open library interface
+        function openLibraryInterface() {
+            const libraryInterface = document.getElementById('library-interface');
+            const booksGrid = document.getElementById('books-grid');
+            
+            // Clear existing books
+            booksGrid.innerHTML = '';
+            
+            // Get all books data
+            const allBooks = JSON.parse(localStorage.getItem('library-books') || '{}');
+            
+            // Create book cards for all 24 books
+            for (let i = 1; i <= 24; i++) {
+                const bookId = `book-${i}`;
+                const bookData = allBooks[bookId] || { title: '', content: '' };
+                
+                const card = document.createElement('div');
+                card.className = 'library-book-card';
+                card.dataset.bookId = bookId;
+                
+                // Get book color from 3D model
+                const bookColor = getBookColor(bookId);
+                
+                card.innerHTML = `
+                    <div class="library-book-spine" style="background: ${bookColor};">
+                        <span>${bookData.title || `Book ${i}`}</span>
+                    </div>
+                    <div class="library-book-info">
+                        <div class="library-book-title">${bookData.title || 'Untitled Book'}</div>
+                        <div class="library-book-preview ${!bookData.content ? 'library-book-empty' : ''}">
+                            ${bookData.content || 'Click to write your story...'}
+                        </div>
+                    </div>
+                `;
+                
+                // Click to open book editor
+                card.addEventListener('click', () => {
+                    openLibraryBook(bookId);
+                });
+                
+                booksGrid.appendChild(card);
+            }
+            
+            // Show interface
+            libraryInterface.classList.add('active');
+        }
+        
+        // Close library interface
+        function closeLibraryInterface() {
+            const libraryInterface = document.getElementById('library-interface');
+            libraryInterface.classList.remove('active');
+        }
+        
+        // Get book color from 3D scene
+        function getBookColor(bookId) {
+            // Find the book in the scene
+            let bookColor = '#999999'; // Default gray
+            
+            scene.traverse((object) => {
+                if (object.userData && object.userData.bookId === bookId) {
+                    if (object.userData.bookColor !== undefined) {
+                        bookColor = '#' + object.userData.bookColor.toString(16).padStart(6, '0');
+                    }
+                }
+            });
+            
+            return bookColor;
+        }
+        
+        // Event listeners for library interface
+        document.getElementById('edit-library-btn').addEventListener('click', openLibraryInterface);
+        
+        document.getElementById('library-close-btn').addEventListener('click', closeLibraryInterface);
+        
+        document.getElementById('library-interface').addEventListener('click', (e) => {
+            if (e.target.id === 'library-interface') {
+                closeLibraryInterface();
+            }
+        });
+        
+        // Update library interface when book data changes
+        function refreshLibraryInterface() {
+            const libraryInterface = document.getElementById('library-interface');
+            if (libraryInterface.classList.contains('active')) {
+                openLibraryInterface();
+            }
+        }
+        
+        // Fast update for a single book card (no full refresh)
+        function updateLibraryBookCard(bookId) {
+            const libraryInterface = document.getElementById('library-interface');
+            if (!libraryInterface.classList.contains('active')) return;
+            
+            const card = document.querySelector(`[data-book-id="${bookId}"]`);
+            if (!card) return;
+            
+            // Get updated book data
+            const allBooks = JSON.parse(localStorage.getItem('library-books') || '{}');
+            const bookData = allBooks[bookId] || { title: '', content: '' };
+            const bookNum = parseInt(bookId.split('-')[1]);
+            
+            // Update only the content, not recreate the card
+            const spineText = card.querySelector('.library-book-spine span');
+            const titleElem = card.querySelector('.library-book-title');
+            const previewElem = card.querySelector('.library-book-preview');
+            
+            if (spineText) spineText.textContent = bookData.title || `Book ${bookNum}`;
+            if (titleElem) titleElem.textContent = bookData.title || 'Untitled Book';
+            if (previewElem) {
+                previewElem.textContent = bookData.content || 'Click to write your story...';
+                previewElem.className = `library-book-preview ${!bookData.content ? 'library-book-empty' : ''}`;
+            }
+        }
+        
+        // Override closeLibraryBook to refresh library interface
+        const originalCloseLibraryBook = closeLibraryBook;
+        closeLibraryBook = function() {
+            originalCloseLibraryBook();
+            refreshLibraryInterface();
+        };
+
+        // ============= IMAGE POSTER FUNCTIONS =============
+        
+        // Open file picker for image upload
+        function openImageUploader() {
+            const fileInput = document.getElementById('image-uploader');
+            fileInput.click();
+        }
+        
+        // Handle image upload
+        document.getElementById('image-uploader').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Check if it's an image
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select a valid image file', 'error');
+                return;
+            }
+            
+            // Read the file
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imageData = event.target.result;
+                
+                // Save to localStorage
+                try {
+                    localStorage.setItem('custom-poster-image', imageData);
+                    
+                    // Update the poster
+                    if (window.imagePoster) {
+                        createPosterImageMesh(window.imagePoster, imageData);
+                        showNotification('Image uploaded successfully! 🖼️', 'success');
+                    }
+                } catch (e) {
+                    showNotification('Image too large! Please use a smaller image.', 'error');
+                }
+            };
+            
+            reader.readAsDataURL(file);
+            
+            // Reset file input
+            e.target.value = '';
+        });
+        
+        // Create image mesh on poster
+        function createPosterImageMesh(poster, imageDataUrl) {
+            // Remove existing image if any
+            const existingImage = poster.children.find(child => child.userData.isPosterImage);
+            if (existingImage) {
+                poster.remove(existingImage);
+            }
+            
+            // Load the image
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(imageDataUrl, (texture) => {
+                // Create plane geometry for the image
+                const imageWidth = 1.2;
+                const imageHeight = 1.8;
+                
+                const imageMesh = new THREE.Mesh(
+                    new THREE.PlaneGeometry(imageWidth, imageHeight),
+                    new THREE.MeshBasicMaterial({
+                        map: texture,
+                        side: THREE.DoubleSide
+                    })
+                );
+                
+                // Position slightly in front of poster
+                imageMesh.position.z = 0.05;
+                imageMesh.userData.isPosterImage = true;
+                
+                poster.add(imageMesh);
+            }, undefined, (error) => {
+                console.error('Error loading image:', error);
+                showNotification('Error loading image', 'error');
+            });
+        }
+        
+        // Load saved poster image on startup
+        function loadPosterImage(poster) {
+            const savedImage = localStorage.getItem('custom-poster-image');
+            if (savedImage) {
+                createPosterImageMesh(poster, savedImage);
+            }
+        }
 
         // Blob is always floating
         isFloating = true;
