@@ -930,6 +930,270 @@
                 box-shadow: 0 8px 0 #8B4513, 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 0 20px rgba(255, 215, 0, 0);
             }
         }
+
+        /* Stardew Valley Style Color Palette Button */
+        #palette-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #f4e4c1 0%, #d9c9a3 100%);
+            border: 4px solid #8B4513;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 
+                0 4px 0 #6b3410,
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.2s;
+        }
+
+        #palette-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0 #6b3410,
+                0 10px 20px rgba(0, 0, 0, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        #palette-button:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0 #6b3410,
+                0 4px 8px rgba(0, 0, 0, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        #palette-button.visible {
+            display: flex;
+        }
+
+        /* Stardew Valley Style Color Palette Menu */
+        #palette-menu {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            background: linear-gradient(145deg, #f4e4c1 0%, #e8d5b5 100%);
+            border: 6px solid #8B4513;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 
+                0 8px 0 #6b3410,
+                0 16px 32px rgba(0, 0, 0, 0.6),
+                inset 0 3px 0 rgba(255, 255, 255, 0.5);
+            z-index: 2000;
+        }
+
+        #palette-menu.visible {
+            display: block;
+            animation: menuPop 0.3s ease-out;
+        }
+
+        @keyframes menuPop {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        #palette-menu-header {
+            background: linear-gradient(145deg, #d4b896 0%, #c4a886 100%);
+            border-bottom: 4px solid #8B4513;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+
+        #palette-menu-header h2 {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            color: #5d4e37;
+            font-size: 24px;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+        }
+
+        #palette-menu-content {
+            padding: 25px;
+        }
+
+        .color-input-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .color-input-group label {
+            font-family: 'Courier New', monospace;
+            color: #5d4e37;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 80px;
+            text-shadow: 0.5px 0.5px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .color-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 3px solid #8B4513;
+            background: #fff9e6;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .color-input:focus {
+            outline: none;
+            border-color: #5d4e37;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(139, 69, 19, 0.2);
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #8B4513;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .palette-button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .palette-btn {
+            flex: 1;
+            padding: 14px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            border: 4px solid #8B4513;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0.5px 0.5px 0 rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .palette-btn.apply {
+            background: linear-gradient(145deg, #90EE90 0%, #7AC87A 100%);
+            color: #2d5016;
+            box-shadow: 0 4px 0 #5d8a3a, 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .palette-btn.apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #5d8a3a, 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .palette-btn.apply:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5d8a3a, 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .palette-btn.generate {
+            background: linear-gradient(145deg, #FFD700 0%, #FFC700 100%);
+            color: #5d4e37;
+            box-shadow: 0 4px 0 #d4a500, 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .palette-btn.generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #d4a500, 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .palette-btn.generate:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #d4a500, 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .palette-btn.close {
+            background: linear-gradient(145deg, #FF6B6B 0%, #E85555 100%);
+            color: #fff;
+            box-shadow: 0 4px 0 #b83232, 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .palette-btn.close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #b83232, 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .palette-btn.close:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b83232, 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .prompt-input-group {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 3px solid #c4a886;
+        }
+
+        .prompt-input-group label {
+            display: block;
+            font-family: 'Courier New', monospace;
+            color: #5d4e37;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0.5px 0.5px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .prompt-input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #8B4513;
+            background: #fff9e6;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: #5d4e37;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(139, 69, 19, 0.2);
+        }
+
+        #palette-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1999;
+            backdrop-filter: blur(4px);
+        }
+
+        #palette-overlay.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1063,6 +1327,67 @@
     <!-- Hidden file input for image upload -->
     <input type="file" id="image-uploader" accept="image/*" style="display: none;" />
 
+    <!-- Color Palette Button (Stardew Valley Style) -->
+    <button id="palette-button" title="Customize Room Colors">🎨</button>
+
+    <!-- Color Palette Menu Overlay -->
+    <div id="palette-overlay"></div>
+
+    <!-- Color Palette Menu (Stardew Valley Style) -->
+    <div id="palette-menu">
+        <div id="palette-menu-header">
+            <h2>🎨 Color Palette</h2>
+        </div>
+        <div id="palette-menu-content">
+            <div class="color-input-group">
+                <label>Color 1:</label>
+                <div class="color-input-wrapper">
+                    <input type="text" class="color-input" id="color1" placeholder="#FF5733" maxlength="7" value="#ffd6e8" />
+                    <div class="color-preview" id="preview1" style="background: #ffd6e8;"></div>
+                </div>
+            </div>
+            <div class="color-input-group">
+                <label>Color 2:</label>
+                <div class="color-input-wrapper">
+                    <input type="text" class="color-input" id="color2" placeholder="#33FF57" maxlength="7" value="#ffe4b5" />
+                    <div class="color-preview" id="preview2" style="background: #ffe4b5;"></div>
+                </div>
+            </div>
+            <div class="color-input-group">
+                <label>Color 3:</label>
+                <div class="color-input-wrapper">
+                    <input type="text" class="color-input" id="color3" placeholder="#3357FF" maxlength="7" value="#ffb6c1" />
+                    <div class="color-preview" id="preview3" style="background: #ffb6c1;"></div>
+                </div>
+            </div>
+            <div class="color-input-group">
+                <label>Color 4:</label>
+                <div class="color-input-wrapper">
+                    <input type="text" class="color-input" id="color4" placeholder="#F333FF" maxlength="7" value="#ffa6c9" />
+                    <div class="color-preview" id="preview4" style="background: #ffa6c9;"></div>
+                </div>
+            </div>
+            <div class="color-input-group">
+                <label>Color 5:</label>
+                <div class="color-input-wrapper">
+                    <input type="text" class="color-input" id="color5" placeholder="#FFFF33" maxlength="7" value="#E6E6FA" />
+                    <div class="color-preview" id="preview5" style="background: #E6E6FA;"></div>
+                </div>
+            </div>
+
+            <div class="prompt-input-group">
+                <label>Or describe your mood:</label>
+                <textarea class="prompt-input" id="palette-prompt" placeholder="e.g., 'cozy autumn evening' or 'bright summer day'"></textarea>
+            </div>
+
+            <div class="palette-button-group">
+                <button class="palette-btn apply" id="apply-palette-btn">✓ Apply</button>
+                <button class="palette-btn generate" id="generate-palette-btn">✨ Generate</button>
+                <button class="palette-btn close" id="close-palette-btn">✕ Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <script>
@@ -1081,8 +1406,12 @@
         camera.position.set(8, 5, 8);
         camera.lookAt(0, 2, 0);
         
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        // Renderer with enhanced settings for soft, diffused look
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance"
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1278,7 +1607,7 @@
             // Walls
             const wallHeight = 8;
             
-            // Back wall
+            // Back wall (complete, no gaps)
             const backWall = new THREE.Mesh(
                 new THREE.BoxGeometry(20, wallHeight, 0.2),
                 materials.wall
@@ -1287,7 +1616,7 @@
             backWall.receiveShadow = true;
             roomGroup.add(backWall);
             
-            // Left wall
+            // Left wall (complete, no gaps)
             const leftWall = new THREE.Mesh(
                 new THREE.BoxGeometry(0.2, wallHeight, 20),
                 materials.wall
@@ -1296,22 +1625,14 @@
             leftWall.receiveShadow = true;
             roomGroup.add(leftWall);
             
-            // Right wall (partial - for window)
-            const rightWall1 = new THREE.Mesh(
-                new THREE.BoxGeometry(0.2, wallHeight, 8),
+            // Right wall (complete, no gaps - window and door will be in front of it)
+            const rightWall = new THREE.Mesh(
+                new THREE.BoxGeometry(0.2, wallHeight, 20),
                 materials.wall
             );
-            rightWall1.position.set(10, wallHeight / 2, -6);
-            rightWall1.receiveShadow = true;
-            roomGroup.add(rightWall1);
-            
-            const rightWall2 = new THREE.Mesh(
-                new THREE.BoxGeometry(0.2, wallHeight, 8),
-                materials.wall
-            );
-            rightWall2.position.set(10, wallHeight / 2, 6);
-            rightWall2.receiveShadow = true;
-            roomGroup.add(rightWall2);
+            rightWall.position.set(10, wallHeight / 2, 0);
+            rightWall.receiveShadow = true;
+            roomGroup.add(rightWall);
             
             return roomGroup;
         }
@@ -1330,22 +1651,98 @@
             const windowGroup = new THREE.Group();
             const frameMat = materials.darkWood;
             const createBar = (w, h, d) => new THREE.ExtrudeGeometry(createRoundedShape(w, h, Math.min(0.03, Math.min(w, h) / 4)), { depth: d, bevelEnabled: false });
-            const addFrame = (w,h,d,x,y,z) => {const m=new THREE.Mesh(createBar(w,h,d),frameMat);m.rotation.y=Math.PI/2;m.position.set(x,y,z);windowGroup.add(m);};
+            const addFrame = (w,h,d,x,y,z,rotY=0) => {const m=new THREE.Mesh(createBar(w,h,d),frameMat);m.rotation.y=rotY;m.position.set(x,y,z);windowGroup.add(m);};
             
-            addFrame(4.4,0.15,0.15,10,5,0);addFrame(4.4,0.15,0.15,10,2,0);addFrame(0.15,3.3,0.15,10,3.5,-2.15);
-            addFrame(0.15,3.3,0.15,10,3.5,2.15);addFrame(0.12,3.15,0.15,10,3.5,0);
+            // Window frames on right wall (rotated -90 degrees)
+            addFrame(3.2,0.15,0.15,9.95,4.5,5.5,-Math.PI/2);  // Top
+            addFrame(3.2,0.15,0.15,9.95,1.8,5.5,-Math.PI/2);  // Bottom
+            addFrame(0.15,2.8,0.15,9.95,3.15,4,-Math.PI/2);   // Front (closer to camera)
+            addFrame(0.15,2.8,0.15,9.95,3.15,7,-Math.PI/2);   // Back (toward back wall)
+            addFrame(0.12,2.65,0.15,9.95,3.15,5.5,-Math.PI/2); // Center divider
             
-            const paneShape = createRoundedShape(1.9, 2.9, 0.1);
+            const paneShape = createRoundedShape(1.4, 2.4, 0.1);
             const pane1 = new THREE.Mesh(new THREE.ExtrudeGeometry(paneShape, { depth: 0.05, bevelEnabled: false }), materials.window);
-            pane1.rotation.y = Math.PI / 2;
-            pane1.position.set(9.95, 3.5, -1.05);
+            pane1.rotation.y = -Math.PI / 2;
+            pane1.position.set(9.9, 3.15, 4.8);
             windowGroup.add(pane1);
             const pane2 = new THREE.Mesh(new THREE.ExtrudeGeometry(paneShape, { depth: 0.05, bevelEnabled: false }), materials.window);
-            pane2.rotation.y = Math.PI / 2;
-            pane2.position.set(9.95, 3.5, 1.05);
+            pane2.rotation.y = -Math.PI / 2;
+            pane2.position.set(9.9, 3.15, 6.2);
             windowGroup.add(pane2);
             
             return windowGroup;
+        }
+        
+        // Door
+        function createDoor() {
+            const doorGroup = new THREE.Group();
+            doorGroup.userData = { name: 'Exit Door', description: 'The way out... or is it? 🚪' };
+            
+            // Door frame
+            const frameMat = materials.darkWood;
+            
+            // Top frame (horizontal)
+            const frameTop = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 0.2, 2.7),
+                frameMat
+            );
+            frameTop.position.set(9.95, 4.1, -4);
+            frameTop.castShadow = true;
+            doorGroup.add(frameTop);
+            
+            // Left frame (vertical, toward back wall)
+            const frameLeft = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 4, 0.15),
+                frameMat
+            );
+            frameLeft.position.set(9.95, 2, -5.275);
+            frameLeft.castShadow = true;
+            doorGroup.add(frameLeft);
+            
+            // Right frame (vertical, toward front)
+            const frameRight = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 4, 0.15),
+                frameMat
+            );
+            frameRight.position.set(9.95, 2, -2.725);
+            frameRight.castShadow = true;
+            doorGroup.add(frameRight);
+            
+            // Door itself
+            const door = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 3.8, 2.4),
+                new THREE.MeshStandardMaterial({color:0x8B4513,roughness:0.7})
+            );
+            door.position.set(9.9, 2, -4);
+            door.castShadow = true;
+            doorGroup.add(door);
+            
+            // Door panels (decorative)
+            const panelMat = new THREE.MeshStandardMaterial({color:0x654321,roughness:0.8});
+            const panelPositions = [
+                [-0.6, 0.9], [0.6, 0.9],
+                [-0.6, -0.9], [0.6, -0.9]
+            ];
+            panelPositions.forEach(([offsetZ, offsetY]) => {
+                const panel = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, 1.3, 0.7),
+                    panelMat
+                );
+                panel.position.set(9.85, 2 + offsetY, -4 + offsetZ);
+                doorGroup.add(panel);
+            });
+            
+            // Door knob
+            const knob = new THREE.Mesh(
+                new THREE.SphereGeometry(0.08, 12, 12),
+                new THREE.MeshStandardMaterial({color:0xFFD700,metalness:0.8,roughness:0.2})
+            );
+            knob.position.set(9.85, 2, -3.2);
+            knob.castShadow = true;
+            doorGroup.add(knob);
+            
+            clickableObjects.push(doorGroup);
+            return doorGroup;
         }
         
         // Desk
@@ -2012,6 +2409,242 @@
             return rugGroup;
         }
         
+        // Bed
+        function createBed() {
+            const bedGroup = new THREE.Group();
+            bedGroup.userData = { name: 'Cozy Bed', description: 'Perfect for afternoon naps 🛏️' };
+            
+            // Bed frame base
+            const frameBase = new THREE.Mesh(
+                new THREE.BoxGeometry(3, 0.3, 4.5),
+                new THREE.MeshStandardMaterial({color:0x8B4513,roughness:0.8})
+            );
+            frameBase.position.set(0, 0.15, 0);
+            frameBase.castShadow = true;
+            bedGroup.add(frameBase);
+            
+            // Mattress
+            const mattress = new THREE.Mesh(
+                new THREE.BoxGeometry(2.8, 0.4, 4.2),
+                new THREE.MeshStandardMaterial({color:0xF5F5DC,roughness:0.9})
+            );
+            mattress.position.set(0, 0.5, 0);
+            mattress.castShadow = true;
+            bedGroup.add(mattress);
+            
+            // Pillow (now at -2.1 because bed is rotated 180)
+            const pillow = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 0.25, 0.8),
+                new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:0.7})
+            );
+            pillow.position.set(0, 0.82, -2.1);
+            pillow.castShadow = true;
+            bedGroup.add(pillow);
+            
+            // Cozy comforter (puffy, layered look)
+            const comforterMain = new THREE.Mesh(
+                new THREE.BoxGeometry(2.7, 0.35, 3.5),
+                new THREE.MeshStandardMaterial({color:0xE6E6FA,roughness:0.8})
+            );
+            comforterMain.position.set(0, 0.88, 0.2);
+            comforterMain.castShadow = true;
+            bedGroup.add(comforterMain);
+            
+            // Comforter folds/texture (lighter sections for depth)
+            const fold1 = new THREE.Mesh(
+                new THREE.BoxGeometry(2.5, 0.25, 0.8),
+                new THREE.MeshStandardMaterial({color:0xF0E6FA,roughness:0.85})
+            );
+            fold1.position.set(0, 1, -0.5);
+            fold1.castShadow = true;
+            bedGroup.add(fold1);
+            
+            const fold2 = new THREE.Mesh(
+                new THREE.BoxGeometry(2.5, 0.22, 0.7),
+                new THREE.MeshStandardMaterial({color:0xE6E6FA,roughness:0.85})
+            );
+            fold2.position.set(0, 0.98, 0.5);
+            fold2.castShadow = true;
+            bedGroup.add(fold2);
+            
+            // Comforter turned down at pillow area
+            const turnDown = new THREE.Mesh(
+                new THREE.BoxGeometry(2.3, 0.15, 0.5),
+                new THREE.MeshStandardMaterial({color:0xDDA0DD,roughness:0.7})
+            );
+            turnDown.position.set(0, 0.75, -1.6);
+            turnDown.rotation.x = -0.3;
+            turnDown.castShadow = true;
+            bedGroup.add(turnDown);
+            
+            // Headboard (now at -2.35 because bed is rotated 180)
+            const headboard = new THREE.Mesh(
+                new THREE.BoxGeometry(3.2, 1.5, 0.2),
+                new THREE.MeshStandardMaterial({color:0x654321,roughness:0.7})
+            );
+            headboard.position.set(0, 1.05, -2.35);
+            headboard.castShadow = true;
+            bedGroup.add(headboard);
+            
+            // Bed legs (relative to center)
+            const legPositions = [
+                [-1.3, 0.15, -2.1], [1.3, 0.15, -2.1],
+                [-1.3, 0.15, 1.8], [1.3, 0.15, 1.8]
+            ];
+            legPositions.forEach(([x, y, z]) => {
+                const leg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, 0.3, 12),
+                    new THREE.MeshStandardMaterial({color:0x654321,roughness:0.8})
+                );
+                leg.position.set(x, y, z);
+                leg.castShadow = true;
+                bedGroup.add(leg);
+            });
+            
+            // Position and rotate the entire bed group (moved closer to corner: right wall and back wall)
+            bedGroup.position.set(8, 0, 6.5);
+            bedGroup.rotation.y = Math.PI; // 180 degree rotation
+            
+            clickableObjects.push(bedGroup);
+            return bedGroup;
+        }
+        
+        // Mini Grand Piano with white circular rug
+        function createPiano() {
+            const pianoGroup = new THREE.Group();
+            pianoGroup.userData = { name: 'Mini Grand Piano', description: 'Play some relaxing melodies 🎹' };
+            
+            // White circular rug underneath
+            const rug = new THREE.Mesh(
+                new THREE.CircleGeometry(2.2, 32),
+                new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:0.95})
+            );
+            rug.rotation.x = -Math.PI / 2;
+            rug.position.set(0, 0.01, 0);
+            rug.receiveShadow = true;
+            pianoGroup.add(rug);
+            
+            const pianoMat = new THREE.MeshStandardMaterial({color:0x000000,roughness:0.2,metalness:0.4});
+            
+            // Main body (rectangular base where keys are)
+            const mainBody = new THREE.Mesh(
+                new THREE.BoxGeometry(1.4, 0.4, 0.6),
+                pianoMat
+            );
+            mainBody.position.set(0, 0.5, 0.5);
+            mainBody.castShadow = true;
+            pianoGroup.add(mainBody);
+            
+            // Curved wing section (creates grand piano shape)
+            const wingShape = new THREE.Shape();
+            wingShape.moveTo(0, 0);
+            wingShape.lineTo(1.2, 0);
+            wingShape.quadraticCurveTo(1.5, -0.3, 1.4, -1);
+            wingShape.quadraticCurveTo(1.2, -1.5, 0.6, -1.6);
+            wingShape.quadraticCurveTo(0.2, -1.5, 0, -1.2);
+            wingShape.lineTo(0, 0);
+            
+            const wing = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(wingShape, {depth:0.4,bevelEnabled:false}),
+                pianoMat
+            );
+            wing.rotation.x = -Math.PI / 2;
+            wing.position.set(-0.7, 0.5, 0.2);
+            wing.castShadow = true;
+            pianoGroup.add(wing);
+            
+            // Lid (angled open) - positioned above wing
+            const lidShape = new THREE.Shape();
+            lidShape.moveTo(0, 0);
+            lidShape.lineTo(1.1, 0);
+            lidShape.quadraticCurveTo(1.4, -0.3, 1.3, -0.9);
+            lidShape.quadraticCurveTo(1.1, -1.4, 0.6, -1.5);
+            lidShape.quadraticCurveTo(0.2, -1.4, 0, -1.1);
+            lidShape.lineTo(0, 0);
+            
+            const lid = new THREE.Mesh(
+                new THREE.ExtrudeGeometry(lidShape, {depth:0.08,bevelEnabled:false}),
+                pianoMat
+            );
+            lid.rotation.x = -Math.PI / 2 + 0.4; // Angled open
+            lid.position.set(-0.65, 0.9, -0.3);
+            lid.castShadow = true;
+            pianoGroup.add(lid);
+            
+            // Lid support stick
+            const lidStick = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.02, 0.02, 0.7, 8),
+                pianoMat
+            );
+            lidStick.rotation.z = -0.5;
+            lidStick.position.set(0.1, 0.85, -0.8);
+            pianoGroup.add(lidStick);
+            
+            // Keyboard (white keys)
+            const keyboard = new THREE.Mesh(
+                new THREE.BoxGeometry(1.3, 0.06, 0.3),
+                new THREE.MeshStandardMaterial({color:0xFFFFF0,roughness:0.4})
+            );
+            keyboard.position.set(0, 0.73, 0.65);
+            pianoGroup.add(keyboard);
+            
+            // Black keys
+            const blackKeys = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 0.04, 0.12),
+                new THREE.MeshStandardMaterial({color:0x000000,roughness:0.5})
+            );
+            blackKeys.position.set(0, 0.77, 0.6);
+            pianoGroup.add(blackKeys);
+            
+            // 3 Grand piano legs (tapered)
+            const legPositions = [
+                [-0.5, 0.25, 0.3],
+                [0.5, 0.25, 0.3],
+                [-0.3, 0.25, -0.8]
+            ];
+            legPositions.forEach(([x, y, z]) => {
+                const leg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.04, 0.06, 0.5, 12),
+                    pianoMat
+                );
+                leg.position.set(x, y, z);
+                leg.castShadow = true;
+                pianoGroup.add(leg);
+            });
+            
+            // Piano bench
+            const benchSeat = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 0.08, 0.35),
+                pianoMat
+            );
+            benchSeat.position.set(0, 0.45, 1.3);
+            benchSeat.castShadow = true;
+            pianoGroup.add(benchSeat);
+            
+            const benchLegs = [
+                [-0.4, 0.225, 1.15],
+                [0.4, 0.225, 1.15],
+                [-0.4, 0.225, 1.45],
+                [0.4, 0.225, 1.45]
+            ];
+            benchLegs.forEach(([x, y, z]) => {
+                const leg = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.03, 0.04, 0.45, 12),
+                    pianoMat
+                );
+                leg.position.set(x, y, z);
+                leg.castShadow = true;
+                pianoGroup.add(leg);
+            });
+            
+            // Position piano in front-left corner, facing the corner
+            pianoGroup.position.set(-7, 0, 7);
+            pianoGroup.rotation.y = -Math.PI / 4;
+            
+            clickableObjects.push(pianoGroup);
+            return pianoGroup;
+        }
+        
         // Coffee mug
         function createMug() {
             const mugGroup = new THREE.Group();
@@ -2550,7 +3183,7 @@
             const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
             const speechBubble = createSpeechBubble(randomQuote);
             speechBubble.position.set(0, 1.5, 0);
-            speechBubble.visible = false;  // Start hidden
+            speechBubble.visible = false;  // Hidden until hover
             blobGroup.add(speechBubble);
 
             // Store references for animation
@@ -2914,6 +3547,7 @@
         // Build the scene
         scene.add(createRoom());
         scene.add(createWindow());
+        scene.add(createDoor());
         scene.add(createDesk());
         scene.add(createBlob());
         scene.add(createChair());
@@ -2923,6 +3557,8 @@
         scene.add(createPlant());
         scene.add(createBookshelf());
         scene.add(createRug());
+        scene.add(createBed());
+        scene.add(createPiano());
         scene.add(createMug());
         scene.add(createNotebook());
         scene.add(createWallArt());
@@ -2973,14 +3609,18 @@
             
             // Position based on mode
             const controlPanel = document.getElementById('control-panel');
+            const paletteButton = document.getElementById('palette-button');
+            
             if (isViewMode) {
                 // View mode - top right corner
                 modeIndicator.style.top = '20px';
                 controlPanel.style.top = '20px'; // Reset control panel position
                 controlPanel.classList.remove('visible');
+                paletteButton.classList.remove('visible'); // Hide palette button in view mode
             } else {
                 // Drag mode - show control panel first, then position indicator above it
                 controlPanel.classList.add('visible');
+                paletteButton.classList.add('visible'); // Show palette button in drag mode
                 
                 // Use setTimeout to ensure control panel is rendered before measuring
                 // Increased delay to match smoother animation
@@ -2993,6 +3633,259 @@
             }
         }
         updateModeIndicator();
+
+        // Color Palette System
+        const paletteButton = document.getElementById('palette-button');
+        const paletteMenu = document.getElementById('palette-menu');
+        const paletteOverlay = document.getElementById('palette-overlay');
+        const closePaletteBtn = document.getElementById('close-palette-btn');
+        const applyPaletteBtn = document.getElementById('apply-palette-btn');
+        const generatePaletteBtn = document.getElementById('generate-palette-btn');
+
+        // Store current color palette
+        let currentPalette = {
+            color1: '#ffd6e8',
+            color2: '#ffe4b5',
+            color3: '#ffb6c1',
+            color4: '#ffa6c9',
+            color5: '#E6E6FA'
+        };
+
+        // Open palette menu
+        paletteButton.addEventListener('click', () => {
+            paletteMenu.classList.add('visible');
+            paletteOverlay.classList.add('visible');
+        });
+
+        // Close palette menu
+        function closePaletteMenu() {
+            paletteMenu.classList.remove('visible');
+            paletteOverlay.classList.remove('visible');
+        }
+
+        closePaletteBtn.addEventListener('click', closePaletteMenu);
+        paletteOverlay.addEventListener('click', closePaletteMenu);
+
+        // Update color previews
+        for (let i = 1; i <= 5; i++) {
+            const input = document.getElementById(`color${i}`);
+            const preview = document.getElementById(`preview${i}`);
+            
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.trim();
+                if (!value.startsWith('#')) value = '#' + value;
+                preview.style.background = value;
+                currentPalette[`color${i}`] = value;
+            });
+        }
+
+        // Apply palette to scene
+        applyPaletteBtn.addEventListener('click', () => {
+            applyColorPalette(currentPalette);
+            closePaletteMenu();
+        });
+
+        // Generate palette from prompt
+        generatePaletteBtn.addEventListener('click', async () => {
+            const prompt = document.getElementById('palette-prompt').value.trim();
+            if (!prompt) {
+                alert('Please describe your desired mood or theme!');
+                return;
+            }
+            
+            // Simulate AI generation (you can replace this with actual API call)
+            const generatedPalette = generatePaletteFromPrompt(prompt);
+            
+            // Update inputs and previews
+            for (let i = 1; i <= 5; i++) {
+                const color = generatedPalette[`color${i}`];
+                document.getElementById(`color${i}`).value = color;
+                document.getElementById(`preview${i}`).style.background = color;
+                currentPalette[`color${i}`] = color;
+            }
+        });
+
+        // Generate palette from text prompt (simple algorithm)
+        function generatePaletteFromPrompt(prompt) {
+            const lowerPrompt = prompt.toLowerCase();
+            
+            // Preset palettes based on keywords
+            if (lowerPrompt.includes('autumn') || lowerPrompt.includes('fall')) {
+                return {
+                    color1: '#D2691E',
+                    color2: '#FF8C00',
+                    color3: '#CD853F',
+                    color4: '#8B4513',
+                    color5: '#FFE4B5'
+                };
+            } else if (lowerPrompt.includes('summer') || lowerPrompt.includes('bright')) {
+                return {
+                    color1: '#FFD700',
+                    color2: '#87CEEB',
+                    color3: '#FF6347',
+                    color4: '#98FB98',
+                    color5: '#FFA07A'
+                };
+            } else if (lowerPrompt.includes('winter') || lowerPrompt.includes('cold') || lowerPrompt.includes('ice')) {
+                return {
+                    color1: '#B0E0E6',
+                    color2: '#E0FFFF',
+                    color3: '#4682B4',
+                    color4: '#ADD8E6',
+                    color5: '#F0F8FF'
+                };
+            } else if (lowerPrompt.includes('spring') || lowerPrompt.includes('pastel')) {
+                return {
+                    color1: '#FFB6C1',
+                    color2: '#98FB98',
+                    color3: '#DDA0DD',
+                    color4: '#FFDAB9',
+                    color5: '#E0BBE4'
+                };
+            } else if (lowerPrompt.includes('dark') || lowerPrompt.includes('night') || lowerPrompt.includes('moody')) {
+                return {
+                    color1: '#2F4F4F',
+                    color2: '#483D8B',
+                    color3: '#8B4789',
+                    color4: '#696969',
+                    color5: '#4B0082'
+                };
+            } else if (lowerPrompt.includes('cozy') || lowerPrompt.includes('warm')) {
+                return {
+                    color1: '#D2691E',
+                    color2: '#FFA07A',
+                    color3: '#F4A460',
+                    color4: '#DEB887',
+                    color5: '#FFE4C4'
+                };
+            } else {
+                // Random pastel palette
+                return {
+                    color1: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    color2: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    color3: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    color4: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'),
+                    color5: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')
+                };
+            }
+        }
+
+        // Apply color palette to all objects in the scene with better contrast
+        function applyColorPalette(palette) {
+            // Create a map to assign specific colors to object types for better contrast
+            const objectColorMap = new Map();
+            
+            scene.traverse((object) => {
+                if (object.isMesh && object.material) {
+                    // Skip certain objects like eyes, mouth, text
+                    if (object.material.type === 'MeshBasicMaterial' && 
+                        (object.material.color.getHex() === 0x3a1f1f || // eyes
+                         object.material.color.getHex() === 0x000000 || // black keys/text
+                         object.material.color.getHex() === 0xFFFFF0)) { // white keys
+                        return;
+                    }
+
+                    // Find parent object with userData.name
+                    let parentObj = object;
+                    while (parentObj && !parentObj.userData.name) {
+                        parentObj = parentObj.parent;
+                    }
+
+                    // Apply colors based on object type or position
+                    const materials = Array.isArray(object.material) ? object.material : [object.material];
+                    
+                    materials.forEach(mat => {
+                        if (mat.color) {
+                            let newColor;
+                            let colorIndex;
+                            
+                            // Assign colors based on object type for maximum contrast
+                            if (parentObj && parentObj.userData.name) {
+                                const objName = parentObj.userData.name;
+                                
+                                // Assign specific palette colors to different objects
+                                if (objName.includes('Blob')) {
+                                    colorIndex = 1; // color1 for blob
+                                } else if (objName.includes('Bed')) {
+                                    colorIndex = 5; // color5 for bed
+                                } else if (objName.includes('Desk') || objName.includes('Chair')) {
+                                    colorIndex = 2; // color2 for furniture
+                                } else if (objName.includes('Bookshelf') || objName.includes('Book')) {
+                                    colorIndex = 3; // color3 for books
+                                } else if (objName.includes('Rug') || objName.includes('Pillow')) {
+                                    colorIndex = 4; // color4 for soft furnishings
+                                } else if (objName.includes('Lamp') || objName.includes('Plant')) {
+                                    colorIndex = 3; // color3 for accents
+                                } else {
+                                    // Use hue-based assignment for other objects
+                                    const currentHue = mat.color.getHSL({h:0, s:0, l:0}).h;
+                                    if (currentHue < 0.15 || currentHue > 0.85) {
+                                        colorIndex = 1;
+                                    } else if (currentHue >= 0.15 && currentHue < 0.35) {
+                                        colorIndex = 2;
+                                    } else if (currentHue >= 0.35 && currentHue < 0.55) {
+                                        colorIndex = 3;
+                                    } else if (currentHue >= 0.55 && currentHue < 0.75) {
+                                        colorIndex = 4;
+                                    } else {
+                                        colorIndex = 5;
+                                    }
+                                }
+                            } else {
+                                // Use position and hue for objects without names
+                                const pos = object.position;
+                                const currentHue = mat.color.getHSL({h:0, s:0, l:0}).h;
+                                
+                                // Distribute colors based on position in room
+                                if (pos.x < -5) {
+                                    colorIndex = 1;
+                                } else if (pos.x >= -5 && pos.x < 0) {
+                                    colorIndex = 2;
+                                } else if (pos.x >= 0 && pos.x < 5) {
+                                    colorIndex = 3;
+                                } else if (pos.z < 0) {
+                                    colorIndex = 4;
+                                } else {
+                                    colorIndex = 5;
+                                }
+                            }
+                            
+                            // Get the color from palette
+                            newColor = new THREE.Color(palette[`color${colorIndex}`]);
+                            
+                            // Reduce brightness and saturation for softer colors, but maintain contrast
+                            const hsl = {h: 0, s: 0, l: 0};
+                            newColor.getHSL(hsl);
+                            
+                            // Keep more saturation for better contrast (only reduce by 20% instead of 30%)
+                            hsl.s = hsl.s * 0.8;
+                            
+                            // Vary lightness based on color index for more contrast
+                            if (colorIndex === 1) {
+                                hsl.l = hsl.l * 0.75; // Darker
+                            } else if (colorIndex === 2) {
+                                hsl.l = hsl.l * 0.85; // Medium-dark
+                            } else if (colorIndex === 3) {
+                                hsl.l = hsl.l * 0.7; // Dark
+                            } else if (colorIndex === 4) {
+                                hsl.l = hsl.l * 0.9; // Medium-light
+                            } else {
+                                hsl.l = hsl.l * 0.8; // Medium
+                            }
+                            
+                            // Clamp values to valid range with better contrast range
+                            hsl.s = Math.max(0.2, Math.min(1, hsl.s)); // Keep some saturation
+                            hsl.l = Math.max(0.25, Math.min(0.75, hsl.l)); // Wider lightness range for contrast
+                            
+                            newColor.setHSL(hsl.h, hsl.s, hsl.l);
+                            mat.color.copy(newColor);
+                        }
+                    });
+                }
+            });
+            
+            renderer.render(scene, camera);
+        }
         
         // Object dragging
         let draggedObject = null;
@@ -3141,23 +4034,19 @@
                             document.body.style.cursor = 'pointer'; // Just show pointer cursor in view mode
                         }
                         
-                        // Handle blob specific hover behavior
+                        // Handle blob specific hover behavior - change quote on every hover
                         if (object.userData.name === 'UwU Blob' && !isHoveringBlob) {
                             isHoveringBlob = true;
                             const newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-                            if (newQuote !== currentQuote) {
-                                currentQuote = newQuote;
-                                if (object.userData.speechBubble) {
-                                    object.remove(object.userData.speechBubble);
-                                }
-                                const newBubble = createSpeechBubble(currentQuote);
-                                newBubble.position.set(0, 1.5, 0);
-                                object.add(newBubble);
-                                object.userData.speechBubble = newBubble;
-                            }
+                            currentQuote = newQuote;
                             if (object.userData.speechBubble) {
-                                object.userData.speechBubble.visible = true;
+                                object.remove(object.userData.speechBubble);
                             }
+                            const newBubble = createSpeechBubble(currentQuote);
+                            newBubble.position.set(0, 1.5, 0);
+                            newBubble.visible = true;
+                            object.add(newBubble);
+                            object.userData.speechBubble = newBubble;
                         }
                         
                     }
@@ -3181,7 +4070,7 @@
                     const objectInfo = document.getElementById('object-info');
                     objectInfo.style.display = 'none';
                     
-                    // Reset blob hover state
+                    // Reset blob hover state and hide speech bubble
                     if (isHoveringBlob) {
                         isHoveringBlob = false;
                         scene.traverse((object) => {
