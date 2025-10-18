@@ -1,0 +1,235 @@
+{
+  "room_style": {
+    "primary_style": "Modern Lofi Study",
+    "characteristics": [
+      "minimalist",
+      "cozy",
+      "student-oriented",
+      "warm",
+      "personal"
+    ],
+    "color_palette": {
+      "primary_colors": [
+        "#1a1a2e",
+        "#f5e6d3",
+        "#8b4513"
+      ],
+      "accent_colors": [
+        "#ffd700",
+        "#ffa07a",
+        "#4169e1"
+      ],
+      "materials": [
+        "wood",
+        "metal",
+        "fabric",
+        "ceramic",
+        "glass"
+      ]
+    }
+  },
+  "objects": [
+    {
+      "id": "room_structure",
+      "type": "structural",
+      "category": "walls_and_floor",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "relative": "center of room"
+      },
+      "dimensions": {
+        "width": 20,
+        "height": 8,
+        "depth": 20
+      },
+      "style": {
+        "shape": "rectangular",
+        "color": "#fff5e6",
+        "material": "plaster",
+        "texture": "smooth"
+      },
+      "description": "Warm-toned room with soft beige walls and wooden floor"
+    },
+    {
+      "id": "desk",
+      "type": "furniture",
+      "category": "workspace",
+      "position": {
+        "x": 0,
+        "y": 1.5,
+        "z": -7,
+        "relative": "room center"
+      },
+      "dimensions": {
+        "width": 5,
+        "height": 0.75,
+        "depth": 2.5
+      },
+      "style": {
+        "shape": "rectangular_with_rounded_edges",
+        "color": "#8b6f47",
+        "material": "wood",
+        "texture": "smooth"
+      },
+      "interactions": [
+        "laptop",
+        "chair",
+        "lamp",
+        "notebook"
+      ],
+      "description": "Wooden study desk with rounded edges and subtle drawer"
+    },
+    {
+      "id": "chair",
+      "type": "furniture",
+      "category": "seating",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": -5.5,
+        "relative": "near desk"
+      },
+      "dimensions": {
+        "width": 1.2,
+        "height": 1.5,
+        "depth": 1.2
+      },
+      "style": {
+        "shape": "ergonomic_with_cushioned_seat",
+        "color": "#ff6b6b",
+        "material": "fabric",
+        "texture": "soft"
+      },
+      "interactions": [
+        "desk"
+      ],
+      "description": "Comfortable fabric chair with curved backrest"
+    },
+    {
+      "id": "laptop",
+      "type": "electronics",
+      "category": "work_device",
+      "position": {
+        "x": 0.5,
+        "y": 1.55,
+        "z": -7,
+        "relative": "on desk"
+      },
+      "dimensions": {
+        "width": 1.2,
+        "height": 0.1,
+        "depth": 0.9
+      },
+      "style": {
+        "shape": "rectangular_with_rounded_corners",
+        "color": "#1a1a1a",
+        "material": "metal_and_plastic",
+        "texture": "sleek"
+      },
+      "interactions": [
+        "desk"
+      ],
+      "description": "Modern laptop with slim profile"
+    },
+    {
+      "id": "blob_companion",
+      "type": "decoration",
+      "category": "character",
+      "position": {
+        "x": 8,
+        "y": 3,
+        "z": -7,
+        "relative": "near window"
+      },
+      "dimensions": {
+        "width": 1.1,
+        "height": 1.1,
+        "depth": 1.1
+      },
+      "style": {
+        "shape": "spherical",
+        "color": "#ffd6e8",
+        "material": "soft_material",
+        "texture": "smooth_and_squishy"
+      },
+      "interactions": [
+        "window"
+      ],
+      "description": "Cute floating blob with expressive eyes and motivational speech bubbles"
+    },
+    {
+      "id": "bookshelf",
+      "type": "furniture",
+      "category": "storage",
+      "position": {
+        "x": -7,
+        "y": 2,
+        "z": -8,
+        "relative": "left wall"
+      },
+      "dimensions": {
+        "width": 2.3,
+        "height": 4,
+        "depth": 1.5
+      },
+      "style": {
+        "shape": "rectangular_with_rounded_edges",
+        "color": "#5d4e37",
+        "material": "wood",
+        "texture": "matte"
+      },
+      "interactions": [
+        "books"
+      ],
+      "description": "Wooden bookshelf with multiple shelves and decorative books"
+    },
+    {
+      "id": "desk_lamp",
+      "type": "lighting",
+      "category": "task_light",
+      "position": {
+        "x": 1.8,
+        "y": 2.45,
+        "z": -7,
+        "relative": "on desk"
+      },
+      "dimensions": {
+        "width": 0.6,
+        "height": 0.8,
+        "depth": 0.6
+      },
+      "style": {
+        "shape": "curved_and_adjustable",
+        "color": "#ffd700",
+        "material": "metal",
+        "texture": "metallic"
+      },
+      "interactions": [
+        "desk"
+      ],
+      "description": "Adjustable golden desk lamp with warm light"
+    }
+  ],
+  "lighting": {
+    "ambient": "Soft, warm overhead lighting with gentle shadows",
+    "task": "Adjustable desk lamp with warm golden glow",
+    "accent": "Subtle point lights creating depth and mood",
+    "color_temperature": "warm"
+  },
+  "spatial_layout": {
+    "room_dimensions": "Approximately 20x20 feet with 8-foot ceiling height",
+    "traffic_flow": "Open central area with workspace as primary focal point",
+    "focal_points": [
+      "study desk",
+      "window view",
+      "floating blob companion"
+    ],
+    "zones": [
+      "work area",
+      "reading corner",
+      "relaxation space"
+    ]
+  }
+}

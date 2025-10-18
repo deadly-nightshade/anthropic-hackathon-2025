@@ -1,164 +1,158 @@
-import React, { useState, useEffect } from 'react';
-import ChatPanel from './components/ChatPanel';
+import React, { useState, useEffect, useRef } from 'react';
 import RoomViewer from './components/RoomViewer';
+import ChatPanel from './components/ChatPanel';
+import './styles/main.css';
 
-const App = () => {
-  const [currentRoomHTML, setCurrentRoomHTML] = useState('');
+function App() {
+  const [roomHTML, setRoomHTML] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+  const roomViewerRef = useRef(null);
 
+  // Load initial room on component mount
   useEffect(() => {
-    // Load initial room on component mount
-    loadInitialRoom();
+    loadCurrentRoom();
   }, []);
 
-  const loadInitialRoom = async () => {
+  const loadCurrentRoom = async () => {
     try {
-      setIsLoading(true);
       const response = await fetch('/api/current-room');
       const data = await response.json();
-      setCurrentRoomHTML(data.html);
-      
-      // Load history status
-      await updateHistoryStatus();
+      setRoomHTML(data.html);
     } catch (error) {
-      console.error('Error loading initial room:', error);
+      console.error('Error loading current room:', error);
+    }
+  };
+
+  const handleVisionRoomEdit = async (prompt) => {
+    setIsLoading(true);
+    try {
+      console.log('🔄 Capturing room screenshot for vision analysis...');
+      
+      // Capture screenshot of current room
+      const screenshot = await roomViewerRef.current?.captureRoomScreenshot();
+      
+      if (!screenshot) {
+        throw new Error('Failed to capture room screenshot');
+      }
+
+      console.log('📸 Screenshot captured, sending to vision agent...');
+
+      const response = await fetch('/api/edit-room-vision', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          prompt,
+          screenshot: {
+            base64Data: screenshot.base64Data,
+            mediaType: screenshot.mediaType,
+            width: screenshot.width,
+            height: screenshot.height
+          },
+          currentHTML: roomHTML
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setRoomHTML(data.html);
+        return {
+          success: true,
+          message: `👁️ Vision analysis complete! Applied ${data.changesApplied} changes based on visual understanding.`,
+          metadata: data.metadata,
+          processingStats: data.processingStats,
+          visualAnalysis: data.visualAnalysis
+        };
+      } else {
+        return {
+          success: false,
+          message: `❌ ${data.error || 'Vision analysis failed'}`
+        };
+      }
+    } catch (error) {
+      console.error('Vision room edit error:', error);
+      return {
+        success: false,
+        message: `❌ Vision Error: ${error.message}`
+      };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateHistoryStatus = async () => {
-    try {
-      const response = await fetch('/api/history-status');
-      const data = await response.json();
-      setCanUndo(data.canUndo);
-      setCanRedo(data.canRedo);
-    } catch (error) {
-      console.error('Error updating history status:', error);
-    }
-  };
-
+  // Keep the original text-based editing as fallback
   const handleRoomEdit = async (prompt) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const response = await fetch('/api/edit-room', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: prompt,
-          currentHTML: currentRoomHTML
-        })
+        body: JSON.stringify({ 
+          prompt,
+          currentHTML: roomHTML
+        }),
       });
 
       const data = await response.json();
-
+      
       if (data.success) {
-        setCurrentRoomHTML(data.html);
-        await updateHistoryStatus();
-        return { success: true, message: '✨ Room updated successfully! Your changes have been applied.' };
+        setRoomHTML(data.html);
+        return {
+          success: true,
+          message: `✅ Room updated successfully! Applied ${data.changesApplied} changes.`,
+          metadata: data.metadata,
+          processingStats: data.processingStats
+        };
       } else {
-        throw new Error(data.error || 'Unknown error occurred');
+        return {
+          success: false,
+          message: `❌ ${data.error || 'Failed to update room'}`
+        };
       }
     } catch (error) {
-      console.error('Error editing room:', error);
-      return { success: false, message: `❌ Error: ${error.message}` };
+      return {
+        success: false,
+        message: `❌ Error: ${error.message}`
+      };
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResetRoom = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const response = await fetch('/api/reset-room', {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
       const data = await response.json();
-
+      
       if (data.success) {
-        setCurrentRoomHTML(data.html);
-        await updateHistoryStatus();
-        return { success: true, message: '🔄 Room reset to default state.' };
+        setRoomHTML(data.html);
+        return {
+          success: true,
+          message: data.message || '🔄 Room reset to default state'
+        };
       } else {
-        throw new Error(data.error || 'Failed to reset room');
+        return {
+          success: false,
+          message: `❌ ${data.error || 'Failed to reset room'}`
+        };
       }
     } catch (error) {
-      console.error('Error resetting room:', error);
-      return { success: false, message: `❌ Error resetting room: ${error.message}` };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownloadRoom = () => {
-    if (!currentRoomHTML) {
-      return { success: false, message: 'No room to download' };
-    }
-
-    const blob = new Blob([currentRoomHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `room-${Date.now()}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    return { success: true, message: '💾 Room downloaded successfully!' };
-  };
-
-  const handleUndo = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/undo', {
-        method: 'POST'
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentRoomHTML(data.html);
-        setCanUndo(data.canUndo);
-        setCanRedo(data.canRedo);
-        return { success: true, message: '⬅️ Undid last change.' };
-      } else {
-        return { success: false, message: data.message || 'Nothing to undo' };
-      }
-    } catch (error) {
-      console.error('Error undoing:', error);
-      return { success: false, message: `❌ Error undoing: ${error.message}` };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRedo = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/redo', {
-        method: 'POST'
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentRoomHTML(data.html);
-        setCanUndo(data.canUndo);
-        setCanRedo(data.canRedo);
-        return { success: true, message: '➡️ Redid last change.' };
-      } else {
-        return { success: false, message: data.message || 'Nothing to redo' };
-      }
-    } catch (error) {
-      console.error('Error redoing:', error);
-      return { success: false, message: `❌ Error redoing: ${error.message}` };
+      return {
+        success: false,
+        message: `❌ Error: ${error.message}`
+      };
     } finally {
       setIsLoading(false);
     }
@@ -170,27 +164,25 @@ const App = () => {
 
   return (
     <div className="app">
-      <div className="container">
-        <ChatPanel 
-          onRoomEdit={handleRoomEdit}
-          onResetRoom={handleResetRoom}
-          onDownloadRoom={handleDownloadRoom}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
+      <div className="main-content">
+        <RoomViewer 
+          ref={roomViewerRef}
+          roomHTML={roomHTML} 
           isLoading={isLoading}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          isMobileMenuOpen={isMobileMenuOpen}
           onToggleMobileMenu={toggleMobileMenu}
         />
-        <RoomViewer 
-          roomHTML={currentRoomHTML}
+        
+        <ChatPanel 
+          onRoomEdit={handleVisionRoomEdit} // Use vision-based editing by default
+          onRoomEditFallback={handleRoomEdit} // Keep text-based as fallback
+          onResetRoom={handleResetRoom}
           isLoading={isLoading}
-          onToggleMobileMenu={toggleMobileMenu}
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
         />
       </div>
     </div>
   );
-};
+}
 
 export default App;

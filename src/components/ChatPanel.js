@@ -2,215 +2,174 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const ChatPanel = ({ 
   onRoomEdit, 
+  onRoomEditFallback,
   onResetRoom, 
-  onDownloadRoom, 
-  onUndo,
-  onRedo,
-  isLoading,
-  canUndo,
-  canRedo,
-  isMobileMenuOpen, 
-  onToggleMobileMenu 
+  isLoading, 
+  isOpen, 
+  onClose 
 }) => {
-  const [messages, setMessages] = useState([
-    {
-      type: 'system',
-      content: 'Welcome! Your room is ready for editing. Try saying something like "Add a red sofa" or "Change the wall color to blue".'
-    }
-  ]);
-  const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef(null);
-  const textareaRef = useRef(null);
+  const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [useVisionMode, setUseVisionMode] = useState(true);
+  const inputRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const addToChatHistory = (message, isUser = false, metadata = {}) => {
+    const newMessage = {
+      id: Date.now(),
+      text: message,
+      isUser,
+      timestamp: new Date().toLocaleTimeString(),
+      metadata
+    };
+    setChatHistory(prev => [...prev, newMessage]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const prompt = inputValue.trim();
-    if (!prompt || isLoading) return;
+    if (!message.trim() || isLoading) return;
 
-    // Add user message
-    setMessages(prev => [...prev, { type: 'user', content: prompt }]);
-    setInputValue('');
+    const userMessage = message.trim();
+    setMessage('');
     
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+    // Add user message to chat
+    addToChatHistory(userMessage, true);
+    
+    try {
+      let result;
+      
+      if (useVisionMode) {
+        // Try vision-based editing first
+        addToChatHistory('📸 Capturing room screenshot for visual analysis...', false);
+        result = await onRoomEdit(userMessage);
+        
+        // If vision mode fails, fallback to text-based
+        if (!result.success && onRoomEditFallback) {
+          addToChatHistory('⚠️ Vision analysis failed, trying text-based approach...', false);
+          result = await onRoomEditFallback(userMessage);
+        }
+      } else {
+        // Use text-based editing directly
+        result = onRoomEditFallback ? await onRoomEditFallback(userMessage) : await onRoomEdit(userMessage);
+      }
+      
+      // Add result to chat with metadata
+      addToChatHistory(result.message, false, {
+        success: result.success,
+        metadata: result.metadata,
+        processingStats: result.processingStats,
+        visualAnalysis: result.visualAnalysis
+      });
+      
+    } catch (error) {
+      addToChatHistory(`❌ Error: ${error.message}`, false, { success: false });
     }
-
-    // Process room edit
-    const result = await onRoomEdit(prompt);
-    
-    // Add response message
-    setMessages(prev => [...prev, { 
-      type: result.success ? 'assistant' : 'error', 
-      content: result.message 
-    }]);
   };
 
   const handleReset = async () => {
     if (isLoading) return;
     
-    const result = await onResetRoom();
-    setMessages(prev => [...prev, { 
-      type: result.success ? 'system' : 'error', 
-      content: result.message 
-    }]);
-  };
-
-  const handleDownload = () => {
-    const result = onDownloadRoom();
-    setMessages(prev => [...prev, { 
-      type: result.success ? 'system' : 'error', 
-      content: result.message 
-    }]);
-  };
-
-  const handleUndo = async () => {
-    if (isLoading || !canUndo) return;
-    
-    const result = await onUndo();
-    setMessages(prev => [...prev, { 
-      type: result.success ? 'system' : 'error', 
-      content: result.message 
-    }]);
-  };
-
-  const handleRedo = async () => {
-    if (isLoading || !canRedo) return;
-    
-    const result = await onRedo();
-    setMessages(prev => [...prev, { 
-      type: result.success ? 'system' : 'error', 
-      content: result.message 
-    }]);
-  };
-
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-    
-    // Auto-resize textarea
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-  };
-
-  const handleExampleClick = (prompt) => {
-    setInputValue(prompt);
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+    try {
+      addToChatHistory('🔄 Resetting room to default state...', false);
+      const result = await onResetRoom();
+      addToChatHistory(result.message, false, { success: result.success });
+    } catch (error) {
+      addToChatHistory(`❌ Reset failed: ${error.message}`, false, { success: false });
     }
   };
 
-  const examplePrompts = [
-    "Add a comfortable red sofa to the room",
-    "Change the wall color to a warm blue", 
-    "Add more plants to make it feel more natural",
-    "Move the desk to the corner near the window",
-    "Add warm lighting with table lamps",
-    "Remove the bookshelf"
-  ];
+  const toggleVisionMode = () => {
+    setUseVisionMode(!useVisionMode);
+    const mode = !useVisionMode ? 'Vision Mode' : 'Text Mode';
+    addToChatHistory(`🔄 Switched to ${mode} ${!useVisionMode ? '(AI sees your room)' : '(Text-based analysis)'}`, false);
+  };
 
   return (
-    <div className={`chat-panel ${isMobileMenuOpen ? 'open' : ''}`}>
+    <div className={`chat-panel ${isOpen ? 'open' : ''}`}>
       <div className="chat-header">
-        <h1>🎨 AI Room Editor</h1>
-        <p>Describe what you want to change in your room, and I'll make it happen!</p>
+        <h2>🏠 Room Designer</h2>
+        <div className="mode-controls">
+          <button 
+            onClick={toggleVisionMode}
+            className={`mode-toggle ${useVisionMode ? 'vision-active' : 'text-active'}`}
+            disabled={isLoading}
+          >
+            {useVisionMode ? '👁️ Vision Mode' : '📝 Text Mode'}
+          </button>
+        </div>
+        <button className="close-btn" onClick={onClose}>✕</button>
       </div>
 
       <div className="chat-messages">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.type}`}>
-            {message.content}
-          </div>
-        ))}
-        
-        {/* Show loading indicator in chat when AI is thinking */}
-        {isLoading && (
-          <div className="message system loading-message">
-            <div className="loading-content-chat">
-              <div className="spinner-small"></div>
-              <span>🤖 AI is redesigning your room...</span>
-            </div>
+        {chatHistory.length === 0 && (
+          <div className="welcome-message">
+            <h3>Welcome to Vision-Enhanced Room Design! 👁️</h3>
+            <p>
+              <strong>Vision Mode:</strong> AI can see your room and understand spatial instructions like:
+            </p>
+            <ul>
+              <li>"Add a bed to the right side of the room"</li>
+              <li>"Put a lamp in the left corner"</li>
+              <li>"Add a desk near the window"</li>
+              <li>"Change the chair color to blue"</li>
+            </ul>
+            <p>
+              <strong>Text Mode:</strong> Traditional text-based analysis (fallback)
+            </p>
           </div>
         )}
         
-        <div ref={messagesEndRef} />
+        {chatHistory.map((msg) => (
+          <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'assistant'}`}>
+            <div className="message-content">
+              {msg.text}
+              {msg.metadata?.visualAnalysis && (
+                <div className="visual-analysis">
+                  <details>
+                    <summary>🔍 Visual Analysis Details</summary>
+                    <pre>{JSON.stringify(msg.metadata.visualAnalysis, null, 2)}</pre>
+                  </details>
+                </div>
+              )}
+            </div>
+            <div className="message-time">{msg.timestamp}</div>
+          </div>
+        ))}
+        <div ref={chatEndRef} />
       </div>
 
-      <div className="chat-input-container">
-        <form onSubmit={handleSubmit} className="input-group">
-          <textarea
-            ref={textareaRef}
-            className="chat-input"
-            placeholder="Describe your room changes..."
-            value={inputValue}
-            onChange={handleInputChange}
-            disabled={isLoading}
-            rows="1"
-          />
-          <button 
-            type="submit" 
-            className="send-button"
-            disabled={isLoading || !inputValue.trim()}
-          >
-            ➤
-          </button>
-        </form>
-
-        <div className="controls">
-          <button 
-            className="control-button" 
-            onClick={handleUndo}
-            disabled={isLoading || !canUndo}
-            title="Undo last change"
-          >
-            ⬅️ Undo
-          </button>
-          <button 
-            className="control-button" 
-            onClick={handleRedo}
-            disabled={isLoading || !canRedo}
-            title="Redo last change"
-          >
-            ➡️ Redo
-          </button>
-          <button 
-            className="control-button" 
-            onClick={handleReset}
-            disabled={isLoading}
-          >
-            🔄 Reset Room
-          </button>
-          <button 
-            className="control-button" 
-            onClick={handleDownload}
-            disabled={isLoading}
-          >
-            💾 Download
-          </button>
-        </div>
-
-        <div className="example-prompts">
-          <h4>Try these examples:</h4>
-          {examplePrompts.map((prompt, index) => (
-            <button
-              key={index}
-              className="example-prompt"
-              onClick={() => handleExampleClick(prompt)}
-              disabled={isLoading}
-            >
-              {prompt.split(' ').slice(0, 4).join(' ')}
-            </button>
-          ))}
-        </div>
+      <div className="chat-controls">
+        <button 
+          onClick={handleReset} 
+          disabled={isLoading}
+          className="reset-btn"
+        >
+          🔄 Reset Room
+        </button>
       </div>
+
+      <form onSubmit={handleSubmit} className="chat-input">
+        <input
+          ref={inputRef}
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder={
+            useVisionMode 
+              ? "Describe changes (AI will see your room)..." 
+              : "Describe changes (text analysis)..."
+          }
+          disabled={isLoading}
+          autoFocus
+        />
+        <button type="submit" disabled={isLoading || !message.trim()}>
+          {isLoading ? '⏳' : useVisionMode ? '👁️' : '📝'}
+        </button>
+      </form>
     </div>
   );
 };
