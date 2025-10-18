@@ -1,9 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const { Anthropic } = require('@anthropic-ai/sdk');
-const fs = require('fs').promises;
 const path = require('path');
 require('dotenv').config();
+
+// Import modular components
+const RoomAnalyzerAgent = require('./server/agents/RoomAnalyzerAgent');
+const InteriorDesignerAgent = require('./server/agents/InteriorDesignerAgent');
+const StyleDetectiveAgent = require('./server/agents/StyleDetectiveAgent');
+const RoomEditorAgent = require('./server/agents/RoomEditorAgent');
+const AdvancedRoomEditorAgent = require('./server/agents/AdvancedRoomEditorAgent');
+const VisionRoomAgent = require('./server/agents/VisionRoomAgent');
+const AgentLogger = require('./server/utils/AgentLogger');
+const RoomUtils = require('./server/utils/RoomUtils');
+const roomRoutes = require('./server/routes/roomRoutes');
+const historyRoutes = require('./server/routes/historyRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,11 +34,50 @@ app.use(express.static('.'));
 // Serve built React app
 app.use(express.static('dist'));
 
+<<<<<<< HEAD
+=======
+// Also serve static files for backward compatibility
+app.use('/static', express.static('.'));
+
+// ==================== APPLICATION STATE ====================
+
+>>>>>>> 79a5d8c3b86c53e5b0d37589bdc58ef8e6386965
 // Store current room state
 let currentRoomHTML = '';
+let roomDescription = null; // JSON description of the room
 let roomHistory = [];
 let historyIndex = -1;
 const MAX_HISTORY = 20; // Limit history to prevent memory issues
+
+// File paths for persistence
+const ROOM_DESCRIPTION_FILE = './room_description.json';
+const DEFAULT_ROOM_DESCRIPTION_FILE = './default_room_description.json';
+const CURRENT_ROOM_FILE = './current_room.html';
+
+// ==================== AGENT INITIALIZATION ====================
+
+// Initialize agent instances
+const roomAnalyzerAgent = new RoomAnalyzerAgent(anthropic);
+const interiorDesignerAgent = new InteriorDesignerAgent(anthropic);
+const styleDetectiveAgent = new StyleDetectiveAgent(anthropic);
+const roomEditorAgent = new RoomEditorAgent(anthropic);
+const advancedRoomEditorAgent = new AdvancedRoomEditorAgent(anthropic);
+const visionRoomAgent = new VisionRoomAgent(anthropic);
+
+console.log('🤖 Initialized AI agents:');
+console.log('   - InteriorDesignerAgent (prompt enhancement)');
+console.log('   - StyleDetectiveAgent (style adaptation)');
+console.log('   - RoomEditorAgent (simple editing)');
+console.log('   - AdvancedRoomEditorAgent (multi-AI coordination)');
+console.log('   - RoomAnalyzerAgent (room understanding)');
+console.log('   - VisionRoomAgent (screenshot analysis) 👁️ NEW');
+
+// Log which Claude model is being used
+const claudeModel = process.env.CLAUDE_MODEL || "claude-3-5-haiku-20241022";
+console.log(`🤖 Using Claude model: ${claudeModel}`);
+console.log(`🧠 Advanced Room Editor Agent initialized and ready`);
+
+// ==================== UTILITY FUNCTIONS ====================
 
 // Helper function to add state to history
 function addToHistory(html, operation = 'edit') {
@@ -53,314 +103,60 @@ function addToHistory(html, operation = 'edit') {
     console.log(`📚 Added to history: ${operation} (${historyIndex + 1}/${roomHistory.length})`);
 }
 
-// Helper function to add line numbers to HTML for AI reference
-function addLineNumbers(html) {
-    return html.split('\n').map((line, index) => `${index + 1}: ${line}`).join('\n');
+// Save current room HTML to file
+async function saveCurrentRoom() {
+    await RoomUtils.saveRoomHTML(CURRENT_ROOM_FILE, currentRoomHTML);
 }
 
-// Diff processor to apply changes to HTML
-function applyDiffToHTML(html, diffObject) {
-    try {
-        const lines = html.split('\n');
-        const changes = diffObject.changes || [];
-        
-        console.log(`🔧 Applying ${changes.length} diff operations...`);
-        
-        // Sort changes by line number in reverse order to avoid line number shifts
-        const sortedChanges = changes.sort((a, b) => {
-            const getLineNumber = (change) => {
-                if (change.type === 'insert') return change.after_line;
-                if (change.type === 'replace') return change.line;
-                if (change.type === 'delete') return change.start_line;
-                return 0;
-            };
-            return getLineNumber(b) - getLineNumber(a);
-        });
-        
-        for (const change of sortedChanges) {
-            console.log(`   ${change.type} operation at line ${change.line || change.after_line || change.start_line}`);
-            
-            if (change.type === 'insert') {
-                // Insert new content after specified line
-                const insertIndex = change.after_line;
-                const newLines = change.content.split('\n');
-                lines.splice(insertIndex, 0, ...newLines);
-                
-            } else if (change.type === 'replace') {
-                // Replace exact text on specified line
-                const lineIndex = change.line - 1; // Convert to 0-based
-                if (lineIndex >= 0 && lineIndex < lines.length) {
-                    const currentLine = lines[lineIndex];
-                    if (currentLine.includes(change.old)) {
-                        lines[lineIndex] = currentLine.replace(change.old, change.new);
-                    } else {
-                        console.warn(`⚠️ Could not find "${change.old}" on line ${change.line}`);
-                    }
-                }
-                
-            } else if (change.type === 'delete') {
-                // Delete lines from start_line to end_line (inclusive)
-                const startIndex = change.start_line - 1; // Convert to 0-based
-                const endIndex = change.end_line - 1;
-                const deleteCount = endIndex - startIndex + 1;
-                lines.splice(startIndex, deleteCount);
-            }
-        }
-        
-        console.log('✅ All diff operations applied successfully');
-        return lines.join('\n');
-        
-    } catch (error) {
-        console.error('❌ Error applying diff:', error);
-        throw new Error(`Failed to apply diff: ${error.message}`);
-    }
+// Load current room HTML from file
+async function loadCurrentRoom() {
+    return await RoomUtils.loadRoomHTML(CURRENT_ROOM_FILE);
 }
 
 // Load default room on startup
 async function loadDefaultRoom() {
-    try {
-        currentRoomHTML = await fs.readFile('./default_room.html', 'utf8');
-        console.log('✅ Default room loaded successfully');
-    } catch (error) {
-        console.error('❌ Error loading default room:', error.message);
+    const html = await RoomUtils.loadRoomHTML('./default_room.html');
+    if (!html) {
+        console.error('❌ Error: default_room.html not found');
         process.exit(1);
     }
+    return html;
 }
 
-// AI room editing endpoint
-app.post('/api/edit-room', async (req, res) => {
-    try {
-        const { prompt, currentHTML } = req.body;
-        
-        if (!prompt) {
-            return res.status(400).json({ error: 'Prompt is required' });
-        }
+// ==================== APP LOCALS (DEPENDENCY INJECTION) ====================
 
-        console.log(`🎨 Processing room edit request: "${prompt}"`);
+// Make all dependencies available to routes via app.locals
+app.locals.roomAnalyzerAgent = roomAnalyzerAgent;
+app.locals.interiorDesignerAgent = interiorDesignerAgent;
+app.locals.styleDetectiveAgent = styleDetectiveAgent;
+app.locals.roomEditorAgent = roomEditorAgent;
+app.locals.advancedRoomEditorAgent = advancedRoomEditorAgent;
+app.locals.visionRoomAgent = visionRoomAgent; // Add vision agent
 
-        // Update current HTML if provided
-        if (currentHTML) {
-            currentRoomHTML = currentHTML;
-        }
+// State getters and setters
+app.locals.getCurrentRoomHTML = () => currentRoomHTML;
+app.locals.setCurrentRoomHTML = (html) => { currentRoomHTML = html; };
+app.locals.getRoomDescription = () => roomDescription;
+app.locals.setRoomDescription = (desc) => { roomDescription = desc; };
 
-        // Create the AI prompt for room editing
-        const systemPrompt = `You are an expert Three.js developer and 3D room designer. You receive HTML containing a complete 3D room scene built with Three.js, and user requests to modify it.
+// History management
+app.locals.roomHistory = roomHistory;
+app.locals.historyIndex = historyIndex;
+app.locals.setHistoryIndex = (index) => { historyIndex = index; };
+app.locals.addToHistory = addToHistory;
 
-Your task is to analyze the HTML and return ONLY a JSON object with specific line-based changes to implement the user's request.
+// Utility functions
+app.locals.saveCurrentRoom = saveCurrentRoom;
 
-CRITICAL OUTPUT FORMAT:
-- Return ONLY a valid JSON object - no explanations, no markdown, no extra text
-- Use this exact structure:
+// File paths
+app.locals.ROOM_DESCRIPTION_FILE = ROOM_DESCRIPTION_FILE;
+app.locals.DEFAULT_ROOM_DESCRIPTION_FILE = DEFAULT_ROOM_DESCRIPTION_FILE;
 
-{
-  "changes": [
-    {
-      "type": "insert",
-      "after_line": <line_number>,
-      "content": "<code_to_insert>"
-    },
-    {
-      "type": "replace", 
-      "line": <line_number>,
-      "old": "<exact_text_to_replace>",
-      "new": "<replacement_text>"
-    },
-    {
-      "type": "delete",
-      "start_line": <line_number>,
-      "end_line": <line_number>
-    }
-  ]
-}
+// ==================== ROUTES ====================
 
-OPERATION TYPES:
-- "insert": Add new code after specified line number
-- "replace": Replace exact text on specified line  
-- "delete": Remove lines from start_line to end_line (inclusive)
-
-RULES:
-- Line numbers are 1-based (first line = 1)
-- For "replace": provide exact text that exists on that line
-- For "insert": new content will be added as new line(s) after the specified line
-- Keep existing functionality intact unless specifically requested to change
-- Focus on minimal, precise changes to achieve the user's request
-- When adding objects, insert Three.js code in appropriate locations (materials, functions, scene building)
-
-EXAMPLES:
-- To add a red sofa: Insert material definition, create function, add to scene
-- To change wall color: Replace the color value in materials.wall
-- To remove object: Delete the creation function and scene.add() call
-
-Analyze the current HTML line by line and return precise diff operations to implement the requested changes.`;
-
-        // Send request to Anthropic
-        const response = await anthropic.messages.create({
-            model: "claude-3-5-haiku-20241022",
-            max_tokens: 4000,
-            temperature: 0.1,
-            system: systemPrompt,
-            messages: [{
-                role: "user",
-                content: `Current room HTML (with line numbers for reference):
-${addLineNumbers(currentRoomHTML)}
-
-User request: "${prompt}"
-
-Return ONLY the JSON diff object with precise line-based changes to implement this request.`
-            }]
-        });
-
-        const aiResponse = response.content[0].text;
-        
-        // Log AI response for debugging
-        console.log('🤖 AI Diff Response received:');
-        console.log('📏 Response length:', aiResponse.length, 'characters');
-        console.log('📝 Response preview:');
-        console.log(aiResponse.substring(0, 500) + (aiResponse.length > 500 ? '...' : ''));
-        
-        // Parse JSON diff response
-        let diffObject;
-        try {
-            // Clean response by removing any markdown code blocks if present
-            let cleanResponse = aiResponse.trim();
-            if (cleanResponse.startsWith('```json')) {
-                cleanResponse = cleanResponse.replace(/```json\n([\s\S]*?)\n```/, '$1');
-            } else if (cleanResponse.startsWith('```')) {
-                cleanResponse = cleanResponse.replace(/```\n([\s\S]*?)\n```/, '$1');
-            }
-            
-            diffObject = JSON.parse(cleanResponse);
-            console.log('✅ Successfully parsed diff object');
-            console.log('🔧 Found', diffObject.changes?.length || 0, 'changes');
-            
-        } catch (parseError) {
-            console.error('❌ Failed to parse AI response as JSON:', parseError.message);
-            console.log('Raw response:', aiResponse);
-            throw new Error(`AI returned invalid JSON: ${parseError.message}`);
-        }
-        
-        // Apply diff to current HTML
-        const updatedHTML = applyDiffToHTML(currentRoomHTML, diffObject);
-        
-        // Update current room state
-        currentRoomHTML = updatedHTML;
-
-        // Add to history
-        addToHistory(updatedHTML, 'edit');
-
-        console.log('✅ Room edit completed successfully with diff system');
-
-        res.json({
-            success: true,
-            html: updatedHTML,
-            originalPrompt: prompt,
-            changesApplied: diffObject.changes?.length || 0
-        });
-
-    } catch (error) {
-        console.error('❌ Error processing room edit:', error);
-        res.status(500).json({
-            error: 'Failed to process room edit',
-            details: error.message
-        });
-    }
-});
-
-// Get current room state
-app.get('/api/current-room', (req, res) => {
-    res.json({
-        html: currentRoomHTML
-    });
-});
-
-// Reset to default room
-app.post('/api/reset-room', async (req, res) => {
-    try {
-        await loadDefaultRoom();
-        addToHistory(currentRoomHTML, 'reset');
-        res.json({
-            success: true,
-            html: currentRoomHTML
-        });
-    } catch (error) {
-        res.status(500).json({
-            error: 'Failed to reset room',
-            details: error.message
-        });
-    }
-});
-
-// Undo endpoint
-app.post('/api/undo', (req, res) => {
-    try {
-        if (historyIndex > 0) {
-            historyIndex--;
-            currentRoomHTML = roomHistory[historyIndex].html;
-            console.log(`⬅️ Undo: moved to history ${historyIndex + 1}/${roomHistory.length}`);
-            
-            res.json({
-                success: true,
-                html: currentRoomHTML,
-                canUndo: historyIndex > 0,
-                canRedo: historyIndex < roomHistory.length - 1
-            });
-        } else {
-            res.json({
-                success: false,
-                message: 'Nothing to undo',
-                canUndo: false,
-                canRedo: historyIndex < roomHistory.length - 1
-            });
-        }
-    } catch (error) {
-        console.error('❌ Error during undo:', error);
-        res.status(500).json({
-            error: 'Failed to undo',
-            details: error.message
-        });
-    }
-});
-
-// Redo endpoint
-app.post('/api/redo', (req, res) => {
-    try {
-        if (historyIndex < roomHistory.length - 1) {
-            historyIndex++;
-            currentRoomHTML = roomHistory[historyIndex].html;
-            console.log(`➡️ Redo: moved to history ${historyIndex + 1}/${roomHistory.length}`);
-            
-            res.json({
-                success: true,
-                html: currentRoomHTML,
-                canUndo: historyIndex > 0,
-                canRedo: historyIndex < roomHistory.length - 1
-            });
-        } else {
-            res.json({
-                success: false,
-                message: 'Nothing to redo',
-                canUndo: historyIndex > 0,
-                canRedo: false
-            });
-        }
-    } catch (error) {
-        console.error('❌ Error during redo:', error);
-        res.status(500).json({
-            error: 'Failed to redo',
-            details: error.message
-        });
-    }
-});
-
-// Get history status
-app.get('/api/history-status', (req, res) => {
-    res.json({
-        canUndo: historyIndex > 0,
-        canRedo: historyIndex < roomHistory.length - 1,
-        historyLength: roomHistory.length,
-        currentIndex: historyIndex
-    });
-});
+// Use modular routes
+app.use('/api', roomRoutes);
+app.use('/api', historyRoutes);
 
 // AI Item Generator endpoint
 app.post('/api/generate-item', async (req, res) => {
@@ -465,14 +261,47 @@ app.get('*', (req, res) => {
     }
 });
 
-// Start server
+// ==================== SERVER STARTUP ====================
+
 async function startServer() {
-    await loadDefaultRoom();
+    // Initialize logging
+    await AgentLogger.initializeLogs();
+
+    // Try to load current room first, fallback to default room
+    const existingRoom = await loadCurrentRoom();
+    if (existingRoom) {
+        currentRoomHTML = existingRoom;
+        console.log('🔄 Loaded existing current room state');
+    } else {
+        currentRoomHTML = await loadDefaultRoom();
+        console.log('🆕 No current room found, starting with default room');
+        // Save the default as current room for future persistence
+        await saveCurrentRoom();
+    }
+    
     addToHistory(currentRoomHTML, 'initial'); // Add initial state to history
     
+    // Load or analyze room description
+    roomDescription = await roomAnalyzerAgent.loadDescription(ROOM_DESCRIPTION_FILE);
+    if (!roomDescription) {
+        console.log('🔍 No existing room description found, analyzing room...');
+        roomDescription = await roomAnalyzerAgent.analyzeRoom(currentRoomHTML);
+        await roomAnalyzerAgent.saveDescription(roomDescription, ROOM_DESCRIPTION_FILE);
+        
+        // Also save as default description if it doesn't exist
+        const defaultDescription = await roomAnalyzerAgent.loadDescription(DEFAULT_ROOM_DESCRIPTION_FILE);
+        if (!defaultDescription) {
+            await roomAnalyzerAgent.saveDescription(roomDescription, DEFAULT_ROOM_DESCRIPTION_FILE);
+            console.log('💾 Saved default room description for future resets');
+        }
+    }
+
     app.listen(PORT, () => {
         console.log(`🚀 AI Room Editor Server running on http://localhost:${PORT}`);
         console.log(`🎨 Open http://localhost:${PORT}/editor.html to start editing!`);
+        console.log(`📝 Agent logs will be written to: ${AgentLogger.AGENT_LOG_FILE}`);
+        console.log(`📋 Room descriptions: current=${ROOM_DESCRIPTION_FILE}, default=${DEFAULT_ROOM_DESCRIPTION_FILE}`);
+        console.log(`🗂️ Modular backend structure loaded successfully!`);
     });
 }
 
