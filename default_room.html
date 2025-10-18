@@ -11,31 +11,6 @@
             box-sizing: border-box;
         }
 
-        #ui {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 8px;
-            z-index: 1000;
-        }
-
-        #ui button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background: #ffd6e8;
-            border: 2px solid #d4a5a5;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        #ui p {
-            margin: 10px 0 0 0;
-            font-size: 14px;
-        }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
@@ -445,11 +420,6 @@
         <p><span class="control-key">Click Notebook</span> Open Todo List 📝</p>
         <p><span class="control-key">Click Objects</span> Interact</p>
     </div>
-
-    <div id="ui">
-        <button id="toggleFloating">Pause</button>
-        <p id="statusText">Click to pause floating</p>
-    </div>
     
     <div id="object-info"></div>
     
@@ -529,13 +499,58 @@
         let time = 0;
         let position = 0;
         const floatSpeed = 1.2;
-        const floatHeight = 0.25;
-        const bobSpeed = Math.PI;
-        const swayAmount = 0.25;
+        const floatHeight = 0.3;     // Slightly increased vertical movement
+        const bobSpeed = Math.PI * 0.8;  // Slightly slower for smoother movement
+        const swayAmount = 0.35;     // Increased sway for more noticeable horizontal movement
 
         let blinkTimer = 0;
         let isBlinking = false;
         let blinkDuration = 0;
+
+        // Speech bubble quotes
+        const motivationalQuotes = [
+            "you got this",
+            "believe in u",
+            "stay pawsitive",
+            "ur doing great",
+            "keep going",
+            "ur amazing",
+            "be yourself",
+            "take a break",
+            "stay cozy",
+            "u r special"
+        ];
+        
+        let isHoveringBlob = false;
+        let currentQuote = "";
+        
+        // Helper function to add inverted hull (outline) effect
+        function addOutlineEffect(mesh, scale = 1.04) {
+            if (!mesh.geometry || !mesh.material) return null;
+            
+            // Get the base color of the object
+            let baseColor = 0x000000;
+            if (mesh.material.color) {
+                baseColor = mesh.material.color.getHex();
+            }
+            
+            // Use specific color for blob outline
+            const outlineMaterial = new THREE.MeshBasicMaterial({
+                color: 0xbd82b0,  // Specific color for blob outline
+                side: THREE.BackSide
+            });
+            
+            const outlineMesh = new THREE.Mesh(
+                mesh.geometry.clone(),
+                outlineMaterial
+            );
+            
+            outlineMesh.position.copy(mesh.position);
+            outlineMesh.rotation.copy(mesh.rotation);
+            outlineMesh.scale.multiplyScalar(scale);
+            
+            return outlineMesh;
+        }
 
         // Materials
         const materials = {
@@ -543,6 +558,11 @@
                 color: 0x8b6f47, 
                 roughness: 0.8,
                 metalness: 0.1
+            }),
+            pixel: new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.9
             }),
             darkWood: new THREE.MeshStandardMaterial({ 
                 color: 0x5d4e37, 
@@ -763,6 +783,12 @@
             desktop.castShadow = true;
             desktop.receiveShadow = true;
             deskGroup.add(desktop);
+
+            // Add outline to desktop
+            const desktopOutline = addOutlineEffect(desktop, 1.02);
+            if (desktopOutline) {
+                deskGroup.add(desktopOutline);
+            }
             
             // Rounded legs
             for (let x of [-2.3, 2.3]) {
@@ -836,7 +862,13 @@
             seat.position.set(0, 1, 0);
             seat.castShadow = true;
             chairGroup.add(seat);
-            
+
+            // Add outline to seat
+            const seatOutline = addOutlineEffect(seat, 1.05);
+            if (seatOutline) {
+                chairGroup.add(seatOutline);
+            }
+
             // Curved backrest
             const backrestGeometry = new THREE.BoxGeometry(1.2, 1.5, 0.25, 8, 16, 8);
             const backPositions = backrestGeometry.attributes.position;
@@ -861,6 +893,12 @@
             backrest.position.set(0, 1.75, 0.6);
             backrest.castShadow = true;
             chairGroup.add(backrest);
+
+            // Add outline to backrest
+            const backrestOutline = addOutlineEffect(backrest, 1.05);
+            if (backrestOutline) {
+                chairGroup.add(backrestOutline);
+            }
             
             // Rounded legs with tapered design
             for (let x of [-0.5, 0.5]) {
@@ -960,6 +998,12 @@
             screen.rotation.x = -0.2;
             screen.castShadow = true;
             laptopGroup.add(screen);
+
+            // Add outline to screen
+            const screenOutline = addOutlineEffect(screen, 1.03);
+            if (screenOutline) {
+                laptopGroup.add(screenOutline);
+            }
             
             clickableObjects.push(laptopGroup);
             return laptopGroup;
@@ -1008,6 +1052,12 @@
                 book.position.set(-1.5 + Math.random() * 0.1, currentHeight + heights[i] / 2, -7 + Math.random() * 0.1);
                 book.castShadow = true;
                 booksGroup.add(book);
+
+                // Add outline to each book
+                const bookOutline = addOutlineEffect(book, 1.02);
+                if (bookOutline) {
+                    booksGroup.add(bookOutline);
+                }
                 currentHeight += heights[i];
             }
             
@@ -1178,6 +1228,12 @@
                 
                 leaf.castShadow = true;
                 plantGroup.add(leaf);
+
+                // Add outline to each leaf
+                const leafOutline = addOutlineEffect(leaf, 1.1);
+                if (leafOutline) {
+                    plantGroup.add(leafOutline);
+                }
             }
             
             // Add some small sphere berries/buds
@@ -1230,6 +1286,12 @@
                 side.position.set(shelfX + x, 2, shelfZ);
                 side.castShadow = true;
                 shelfGroup.add(side);
+
+                // Add outline to each side
+                const sideOutline = addOutlineEffect(side, 1.03);
+                if (sideOutline) {
+                    shelfGroup.add(sideOutline);
+                }
             }
             
             // Rounded shelves with curved front edge
@@ -1259,6 +1321,12 @@
                 shelf.castShadow = true;
                 shelf.receiveShadow = true;
                 shelfGroup.add(shelf);
+
+                // Add outline to each shelf
+                const shelfOutline = addOutlineEffect(shelf, 1.03);
+                if (shelfOutline) {
+                    shelfGroup.add(shelfOutline);
+                }
             }
             
             // Rounded books on shelves
@@ -1302,6 +1370,12 @@
                     book.rotation.z = (Math.random() - 0.5) * 0.3;
                     book.castShadow = true;
                     shelfGroup.add(book);
+
+                    // Add outline to each book
+                    const bookOutline = addOutlineEffect(book, 1.03);
+                    if (bookOutline) {
+                        shelfGroup.add(bookOutline);
+                    }
                 }
             }
             
@@ -1339,6 +1413,13 @@
             rug.position.set(0, 0.01, -6);
             rug.receiveShadow = true;
             rugGroup.add(rug);
+
+            // Add outline to rug
+            const rugOutline = addOutlineEffect(rug, 1.02);
+            if (rugOutline) {
+                rugOutline.position.y = 0.005; // Slightly lower to prevent z-fighting
+                rugGroup.add(rugOutline);
+            }
             
             // Rounded pattern with softer edges
             const patternShape = new THREE.Shape();
@@ -1403,6 +1484,12 @@
             body.position.set(-0.8, 1.68, -6.8);
             body.castShadow = true;
             mugGroup.add(body);
+
+            // Add outline to mug body
+            const bodyOutline = addOutlineEffect(body, 1.05);
+            if (bodyOutline) {
+                mugGroup.add(bodyOutline);
+            }
             
             // Coffee inside
             const coffee = new THREE.Mesh(
@@ -1628,6 +1715,281 @@
         }
         
         // Digital Clock (3D LED style)
+        // Create pixel text
+        function createPixelText(text) {
+            const textGroup = new THREE.Group();
+            const pixelSize = 0.04;
+            const pixelSpacing = 0.01;
+            const letterSpacing = 0.02;
+            
+            // Simple pixel font definition (5x5 grid for each character)
+            const pixelFont = {
+                'a': [
+                    '0110',
+                    '1001',
+                    '1111',
+                    '1001',
+                    '1001'
+                ],
+                'b': [
+                    '1110',
+                    '1001',
+                    '1110',
+                    '1001',
+                    '1110'
+                ],
+                'c': [
+                    '0111',
+                    '1000',
+                    '1000',
+                    '1000',
+                    '0111'
+                ],
+                'd': [
+                    '1110',
+                    '1001',
+                    '1001',
+                    '1001',
+                    '1110'
+                ],
+                'e': [
+                    '1111',
+                    '1000',
+                    '1110',
+                    '1000',
+                    '1111'
+                ],
+                'f': [
+                    '1111',
+                    '1000',
+                    '1110',
+                    '1000',
+                    '1000'
+                ],
+                'g': [
+                    '0111',
+                    '1000',
+                    '1011',
+                    '1001',
+                    '0111'
+                ],
+                'h': [
+                    '1001',
+                    '1001',
+                    '1111',
+                    '1001',
+                    '1001'
+                ],
+                'i': [
+                    '111',
+                    '010',
+                    '010',
+                    '010',
+                    '111'
+                ],
+                'j': [
+                    '0111',
+                    '0010',
+                    '0010',
+                    '1010',
+                    '0110'
+                ],
+                'k': [
+                    '1001',
+                    '1010',
+                    '1100',
+                    '1010',
+                    '1001'
+                ],
+                'l': [
+                    '1000',
+                    '1000',
+                    '1000',
+                    '1000',
+                    '1111'
+                ],
+                'm': [
+                    '11011',
+                    '10101',
+                    '10101',
+                    '10001',
+                    '10001'
+                ],
+                'n': [
+                    '1001',
+                    '1101',
+                    '1011',
+                    '1001',
+                    '1001'
+                ],
+                'o': [
+                    '0110',
+                    '1001',
+                    '1001',
+                    '1001',
+                    '0110'
+                ],
+                'p': [
+                    '1110',
+                    '1001',
+                    '1110',
+                    '1000',
+                    '1000'
+                ],
+                'q': [
+                    '0110',
+                    '1001',
+                    '1001',
+                    '1011',
+                    '0111'
+                ],
+                'r': [
+                    '1110',
+                    '1001',
+                    '1110',
+                    '1010',
+                    '1001'
+                ],
+                's': [
+                    '0111',
+                    '1000',
+                    '0110',
+                    '0001',
+                    '1110'
+                ],
+                't': [
+                    '1111',
+                    '0110',
+                    '0110',
+                    '0110',
+                    '0110'
+                ],
+                'u': [
+                    '1001',
+                    '1001',
+                    '1001',
+                    '1001',
+                    '0110'
+                ],
+                'v': [
+                    '1001',
+                    '1001',
+                    '1001',
+                    '0110',
+                    '0110'
+                ],
+                'w': [
+                    '10001',
+                    '10101',
+                    '10101',
+                    '10101',
+                    '01010'
+                ],
+                'x': [
+                    '1001',
+                    '0110',
+                    '0110',
+                    '0110',
+                    '1001'
+                ],
+                'y': [
+                    '1001',
+                    '1001',
+                    '0111',
+                    '0010',
+                    '1100'
+                ],
+                'z': [
+                    '1111',
+                    '0001',
+                    '0110',
+                    '1000',
+                    '1111'
+                ],
+                ' ': [
+                    '000',
+                    '000',
+                    '000',
+                    '000',
+                    '000'
+                ]
+            };
+
+            let xOffset = 0;
+            
+            // Create each character
+            for (let char of text.toLowerCase()) {
+                if (pixelFont[char]) {
+                    const pattern = pixelFont[char];
+                    const charWidth = pattern[0].length;
+                    
+                    for (let y = 0; y < pattern.length; y++) {
+                        for (let x = 0; x < charWidth; x++) {
+                            if (pattern[y][x] === '1') {
+                                const pixel = new THREE.Mesh(
+                                    new THREE.BoxGeometry(pixelSize, pixelSize, pixelSize),
+                                    materials.pixel
+                                );
+                                pixel.position.set(
+                                    xOffset + x * (pixelSize + pixelSpacing),
+                                    -(y * (pixelSize + pixelSpacing)),
+                                    0
+                                );
+                                textGroup.add(pixel);
+                            }
+                        }
+                    }
+                    xOffset += (charWidth * (pixelSize + pixelSpacing)) + letterSpacing;
+                }
+            }
+
+            return textGroup;
+        }
+
+        // Create speech bubble
+        function createSpeechBubble(text) {
+            const bubbleGroup = new THREE.Group();
+            
+            // Create pixel text
+            const textMesh = createPixelText(text);
+            
+            // Calculate bubble size based on text size
+            const textBounds = new THREE.Box3().setFromObject(textMesh);
+            const textWidth = textBounds.max.x - textBounds.min.x;
+            const textHeight = textBounds.max.y - textBounds.min.y;
+            const padding = 0.1;
+            
+            // Create bubble background
+            const bubbleWidth = textWidth + padding * 2;
+            const bubbleHeight = textHeight + padding * 2;
+            const bubbleGeometry = new THREE.BoxGeometry(bubbleWidth, bubbleHeight, 0.02);
+            const bubbleMaterial = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                transparent: true,
+                opacity: 0.7
+            });
+            const bubble = new THREE.Mesh(bubbleGeometry, bubbleMaterial);
+            
+            // Create bubble tail (triangle)
+            const tailGeometry = new THREE.BufferGeometry();
+            const tailVertices = new Float32Array([
+                -0.1, -bubbleHeight/2, 0,
+                0.1, -bubbleHeight/2, 0,
+                0, -bubbleHeight/2 - 0.2, 0
+            ]);
+            tailGeometry.setAttribute('position', new THREE.BufferAttribute(tailVertices, 3));
+            const tail = new THREE.Mesh(tailGeometry, bubbleMaterial);
+            
+            bubbleGroup.add(bubble);
+            bubbleGroup.add(tail);
+            bubbleGroup.add(textMesh);
+            
+            // Center text in bubble
+            textMesh.position.set(-textWidth/2, textHeight/2, 0.02);
+            
+            return bubbleGroup;
+        }
+
         // Create Blob
         function createBlob() {
             const blobGroup = new THREE.Group();
@@ -1644,14 +2006,14 @@
             blobGroup.add(body);
 
             // Outline
-            const outlineGeometry = bodyGeometry.clone();
-            const outlineMaterial = new THREE.MeshBasicMaterial({
-                color: 0x000000,
-                side: THREE.BackSide,
-            });
-            const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
-            outline.scale.set(1.04, 1.04, 1.04);
-            blobGroup.add(outline);
+            const outline = addOutlineEffect(body, 1.04);
+            if (outline) {
+                blobGroup.add(outline);
+            }
+
+            // No ears on this blob version
+                
+                // No ears on this blob version
 
             // Eyes
             const eyeGeometry = new THREE.SphereGeometry(0.13, 8, 8);
@@ -1695,15 +2057,23 @@
             const mouth = createWMouth();
             blobGroup.add(mouth);
 
+            // Create and add speech bubble
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            const speechBubble = createSpeechBubble(randomQuote);
+            speechBubble.position.set(0, 1.5, 0);
+            speechBubble.visible = false;  // Start hidden
+            blobGroup.add(speechBubble);
+
             // Store references for animation
             blobGroup.userData.leftEye = leftEye;
             blobGroup.userData.rightEye = rightEye;
             blobGroup.userData.mouth = mouth;
+            blobGroup.userData.speechBubble = speechBubble;
 
             // Scale down the blob to fit the room better
             blobGroup.scale.set(0.5, 0.5, 0.5);
-            // Position the blob in the room
-            blobGroup.position.set(0, 3, -4);
+            // Position the blob by the window in the right corner
+            blobGroup.position.set(8, 3, -7);
 
             clickableObjects.push(blobGroup);
             return blobGroup;
@@ -1925,9 +2295,70 @@
         let dragPlane = new THREE.Plane();
         let dragOffset = new THREE.Vector3();
         let dragIntersection = new THREE.Vector3();
+        let draggedObjectBasePosition = new THREE.Vector3(); // Store original position for blob
+        let draggedObjectOriginalHeight = 0; // Store original height when starting drag
+        
+        // Variables for drag resistance and physics
+        let lastDragPosition = new THREE.Vector3();
+        let dragResistance = 0.3; // Lower = more resistance
+        let minDragDistance = 0.05; // Minimum distance before movement occurs
+        
+        // Physics simulation variables
+        const fallingObjects = new Map(); // Track objects that are falling
+        const gravity = 0.015; // Gravity strength
+        const bounceRestitution = 0.3; // How bouncy objects are (0-1)
+        const floorY = 0; // Y position of the floor
+        
+        // Function to start physics drop
+        function startDropPhysics(object) {
+            // Get current velocity from recent drag if available
+            const currentVelocity = new THREE.Vector3();
+            if (lastDragPosition) {
+                currentVelocity.subVectors(object.position, lastDragPosition);
+            }
+            
+            const physics = {
+                velocity: currentVelocity.multiplyScalar(0.2), // Scale down the initial velocity
+                angularVelocity: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1
+                ),
+                isFirstBounce: true,
+                dropStartHeight: object.position.y // Store initial drop height
+            };
+            
+            // Different floor heights and physics properties for different objects
+            if (object.userData.name === 'UwU Blob') {
+                physics.floorY = 3; // Blob floats higher
+                physics.gravity = 0.008; // Slower fall
+                physics.bounceRestitution = 0.5; // Bouncier
+                physics.airResistance = 0.98; // Less air resistance
+            } else if (object.userData.name === 'Desk' || 
+                      object.userData.name === 'Bookshelf' || 
+                      object.userData.name === 'Study Chair') {
+                physics.floorY = 0;
+                physics.gravity = 0.025; // Fall faster
+                physics.bounceRestitution = 0.1; // Less bouncy
+                physics.airResistance = 0.95; // More air resistance for heavy objects
+            } else {
+                physics.floorY = object.userData.defaultY || 0;
+                physics.gravity = gravity;
+                physics.bounceRestitution = bounceRestitution;
+                physics.airResistance = 0.97; // Default air resistance
+            }
+            
+            // Calculate drop height to scale initial bounce
+            physics.initialDropHeight = object.position.y - physics.floorY;
+            
+            fallingObjects.set(object, physics);
+        }
+        
+        let isMouseDown = false; // Track if mouse button is held down
         
         // Mouse event handlers
         renderer.domElement.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
             if (e.button === 0) { // Left click
                 // Check if clicking on an object
                 mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -1944,19 +2375,57 @@
                     }
                     
                     if (object && object.userData.name) {
-                        // Start dragging this object
-                        draggedObject = object;
+                        clickStartPos = { x: e.clientX, y: e.clientY };
+                        // Only start dragging if mouse moves while down
+                        const potentialDrag = object;
                         
-                        // Create a plane at the object's y position
-                        dragPlane.setFromNormalAndCoplanarPoint(
-                            camera.getWorldDirection(dragPlane.normal),
-                            intersects[0].point
-                        );
+                        // Wait for slight movement before initiating drag
+                        const moveHandler = (moveEvent) => {
+                            const moveDistance = Math.sqrt(
+                                Math.pow(moveEvent.clientX - clickStartPos.x, 2) + 
+                                Math.pow(moveEvent.clientY - clickStartPos.y, 2)
+                            );
+                            
+                            if (moveDistance > 5 && isMouseDown) {
+                                // Start dragging this object
+                                draggedObject = potentialDrag;
+                                
+                                // Store original height and rotation
+                                draggedObjectOriginalHeight = potentialDrag.position.y;
+                                
+                                // Store the base position if it's the blob
+                                if (potentialDrag.userData.name === 'UwU Blob') {
+                                    // Pause floating animation while dragging
+                                    isFloating = false;
+                                    // Store current position
+                                    draggedObjectBasePosition.copy(potentialDrag.position);
+                                }
+                                
+                                // Create a plane at the object's y position
+                                dragPlane.setFromNormalAndCoplanarPoint(
+                                    camera.getWorldDirection(dragPlane.normal),
+                                    intersects[0].point
+                                );
+                                
+                                // Calculate offset
+                                if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
+                                    dragOffset.copy(dragIntersection).sub(potentialDrag.position);
+                                }
+                                
+                                // Remove the temporary move handler
+                                renderer.domElement.removeEventListener('mousemove', moveHandler);
+                            }
+                        };
                         
-                        // Calculate offset
-                        if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
-                            dragOffset.copy(dragIntersection).sub(object.position);
-                        }
+                        // Add temporary move handler
+                        renderer.domElement.addEventListener('mousemove', moveHandler);
+                        
+                        // Remove the handler if mouse is released without dragging
+                        const cleanup = () => {
+                            renderer.domElement.removeEventListener('mousemove', moveHandler);
+                            renderer.domElement.removeEventListener('mouseup', cleanup);
+                        };
+                        renderer.domElement.addEventListener('mouseup', cleanup);
                         
                         return; // Don't start camera drag
                     }
@@ -1970,16 +2439,101 @@
         });
         
         renderer.domElement.addEventListener('mousemove', (e) => {
+            // Only process if mouse is down and we're actively dragging
+            if (!isMouseDown || !draggedObject) {
+                return;
+            }
+            
             // Update mouse position for raycasting
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Check for blob hover
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(clickableObjects, true);
+            
+            let foundBlob = false;
+            if (intersects.length > 0) {
+                // Find the parent group with userData
+                let object = intersects[0].object;
+                while (object && !object.userData.name) {
+                    object = object.parent;
+                }
+                
+                if (object && object.userData.name === 'UwU Blob') {
+                    foundBlob = true;
+                    if (!isHoveringBlob) {
+                        isHoveringBlob = true;
+                        // Change quote and show bubble
+                        const newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                        if (newQuote !== currentQuote) {
+                            currentQuote = newQuote;
+                            const oldBubble = object.userData.speechBubble;
+                            if (oldBubble) {
+                                object.remove(oldBubble);
+                            }
+                            const newBubble = createSpeechBubble(currentQuote);
+                            newBubble.position.set(0, 1.5, 0);
+                            object.add(newBubble);
+                            object.userData.speechBubble = newBubble;
+                        }
+                        object.userData.speechBubble.visible = true;
+                    }
+                }
+            }
+            
+            if (!foundBlob && isHoveringBlob) {
+                isHoveringBlob = false;
+                // Hide speech bubble from all instances of blob
+                scene.traverse((object) => {
+                    if (object.userData && object.userData.name === 'UwU Blob' && object.userData.speechBubble) {
+                        object.userData.speechBubble.visible = false;
+                    }
+                });
+            }
             
             // Handle object dragging
             if (draggedObject) {
                 raycaster.setFromCamera(mouse, camera);
                 
                 if (raycaster.ray.intersectPlane(dragPlane, dragIntersection)) {
-                    draggedObject.position.copy(dragIntersection.sub(dragOffset));
+                    // Store the target position
+                    const targetPosition = dragIntersection.clone().sub(dragOffset);
+                    
+                    // Calculate distance to move
+                    const moveDistance = targetPosition.distanceTo(draggedObject.position);
+                    
+                    // Adjust resistance based on object type
+                    let objectResistance = dragResistance;
+                    let objectMinDistance = minDragDistance;
+                    
+                    // Heavier objects have more resistance
+                    if (draggedObject.userData.name === 'Desk' || 
+                        draggedObject.userData.name === 'Bookshelf' ||
+                        draggedObject.userData.name === 'Study Chair') {
+                        objectResistance = dragResistance * 0.7; // Even more resistance for furniture
+                        objectMinDistance = minDragDistance * 1.5; // Require more movement
+                    } else if (draggedObject.userData.name === 'Book Stack' ||
+                             draggedObject.userData.name === 'Desk Lamp' ||
+                             draggedObject.userData.name === 'Coffee Mug' ||
+                             draggedObject.userData.name === 'Study Notebook') {
+                        objectResistance = dragResistance * 1.2; // Slightly less resistance for small items
+                        objectMinDistance = minDragDistance * 0.8; // Less movement required
+                    }
+                    
+                    if (moveDistance > objectMinDistance) {
+                        // Apply smoothed movement with resistance
+                        draggedObject.position.lerp(targetPosition, objectResistance);
+                        
+                        // Contain within room bounds while dragging
+                        containObjectInBounds(draggedObject);
+                        
+                        // Store this position for next frame
+                        lastDragPosition.copy(draggedObject.position);
+                        
+                        // Don't modify rotations while dragging at all
+                        // Removed rotation reset code to maintain original orientation
+                    }
                 }
                 
                 return; // Don't rotate camera while dragging object
@@ -2030,10 +2584,40 @@
             }
         });
         
-        renderer.domElement.addEventListener('mouseup', () => {
-            isDragging = false;
-            isPanning = false;
-            draggedObject = null;
+        renderer.domElement.addEventListener('mouseup', (e) => {
+            // Clear mouse state immediately
+            isMouseDown = false;
+            
+            // Handle object release
+            if (draggedObject) {
+                const releasedObject = draggedObject;
+                
+                // Clear drag state FIRST before any other operations
+                draggedObject = null;
+                lastDragPosition = null;
+                isDragging = false;
+                isPanning = false;
+                
+                if (releasedObject.userData.name === 'UwU Blob') {
+                    // Handle blob release
+                    const newPos = releasedObject.position.clone();
+                    scene.traverse((object) => {
+                        if (object.userData && object.userData.name === 'UwU Blob') {
+                            object.userData.basePosition = newPos;
+                        }
+                    });
+                    isFloating = true;
+                } else {
+                    // Handle regular object release
+                    releasedObject.position.y = 0;  // Drop to ground
+                    makeObjectStatic(releasedObject);
+                }
+                
+                // Force update raycaster to prevent sticky behavior
+                mouse.x = -9999;
+                mouse.y = -9999;
+                raycaster.setFromCamera(mouse, camera);
+            }
         });
         
         renderer.domElement.addEventListener('contextmenu', (e) => {
@@ -2062,18 +2646,22 @@
         });
         
         renderer.domElement.addEventListener('click', (e) => {
-            // Check if this was a drag vs a click
+                    // Check if this was a drag vs a click
             const distance = Math.sqrt(
                 Math.pow(e.clientX - clickStartPos.x, 2) + 
                 Math.pow(e.clientY - clickStartPos.y, 2)
             );
             
-            if (distance > 5) return; // Was a drag, not a click
+            if (distance > 5) {
+                // Was a drag - immediately make static if touching ground or objects
+                if (draggedObject) {
+                    makeObjectStatic(draggedObject);
+                }
+                return;
+            }
             
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(clickableObjects, true);
-            
-            if (intersects.length > 0) {
+            const intersects = raycaster.intersectObjects(clickableObjects, true);            if (intersects.length > 0) {
                 // Find the parent group with userData
                 let object = intersects[0].object;
                 while (object && !object.userData.name) {
@@ -2140,22 +2728,172 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // Room boundaries (based on room size from createRoom function)
+            const roomBounds = {
+                minX: -5.5,  // Left wall
+                maxX: 5.5,   // Right wall
+                minZ: -5.5,  // Back wall
+                maxZ: 5.5,   // Front
+                maxY: 7.5    // Ceiling
+            };
+
+            // Function to check collision between objects
+            function checkObjectCollision(obj1, obj2) {
+                // Get object dimensions with increased collider sizes
+                const size1 = getObjectSize(obj1);
+                const size2 = getObjectSize(obj2);
+                
+                // Calculate collision bounds with larger safety margin
+                const minDist = (size1 + size2) * 1.2; // 120% of combined size for stronger collision prevention
+                
+                // Check distance between objects
+                const dx = obj1.position.x - obj2.position.x;
+                const dz = obj1.position.z - obj2.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                return {
+                    isColliding: distance < minDist,
+                    distance: distance,
+                    normal: distance > 0 ? { x: dx / distance, z: dz / distance } : { x: 1, z: 0 }
+                };
+            }
+
+            // Get object size helper function with increased sizes
+            function getObjectSize(object) {
+                // Increased base sizes for better collision prevention
+                return object.userData.name === 'Desk' ? 3 :      // Larger desk collider
+                       object.userData.name === 'Bookshelf' ? 2 : // Larger bookshelf collider
+                       object.userData.name === 'Study Chair' ? 1.5 : // Larger chair collider
+                       object.userData.name === 'UwU Blob' ? 1.5 :   // Larger blob collider
+                       1.0; // Larger default size for small objects
+            }
+
+            // Function to keep object within bounds and handle collisions
+            function containObjectInBounds(object) {
+                const objectSize = getObjectSize(object);
+                const halfSize = objectSize / 2;
+
+                // Constrain position within bounds
+                object.position.x = Math.max(roomBounds.minX + halfSize, 
+                                          Math.min(roomBounds.maxX - halfSize, object.position.x));
+                object.position.z = Math.max(roomBounds.minZ + halfSize, 
+                                          Math.min(roomBounds.maxZ - halfSize, object.position.z));
+                object.position.y = Math.min(roomBounds.maxY - halfSize, object.position.y);
+
+                // Keep object on the floor unless it's the blob or being dragged
+                if (object.userData.name !== 'UwU Blob' && !draggedObject) {
+                    object.position.y = object.userData.defaultY || 0;
+                }
+
+                // Check collisions with other objects
+                clickableObjects.forEach(other => {
+                    if (other !== object && other.userData.name !== 'UwU Blob') {
+                        const collision = checkObjectCollision(object, other);
+                        if (collision.isColliding) {
+                            // If objects are touching while not being dragged, make them static
+                            if (!draggedObject || draggedObject !== object) {
+                                // Set appropriate heights based on what they're colliding with
+                                if (other.position.y > 0) {
+                                    // If colliding with something above ground, place on top of it
+                                    object.position.y = other.position.y;
+                                } else {
+                                    // If colliding with something on the ground, place at ground level
+                                    object.position.y = 0;
+                                }
+                                makeObjectStatic(object);
+                                makeObjectStatic(other);
+                            } else {
+                                // If we're dragging the object, just prevent overlap
+                                const overlap = getObjectSize(object) + getObjectSize(other) - collision.distance;
+                                const moveX = collision.normal.x * overlap;
+                                const moveZ = collision.normal.z * overlap;
+                                object.position.x += moveX;
+                                object.position.z += moveZ;
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update physics for falling objects
+            fallingObjects.forEach((physics, object) => {
+                // Apply gravity to velocity
+                physics.velocity.y -= physics.gravity;
+                
+                // Store previous position
+                const previousPosition = object.position.clone();
+                
+                // Update position
+                object.position.add(physics.velocity);
+                
+                // Check and contain within bounds
+                containObjectInBounds(object);
+                
+                // If position was constrained, stop movement in that direction
+                if (object.position.x !== previousPosition.x + physics.velocity.x) {
+                    physics.velocity.x = 0;
+                }
+                if (object.position.z !== previousPosition.z + physics.velocity.z) {
+                    physics.velocity.z = 0;
+                }
+                
+                // Apply rotation
+                object.rotation.x += physics.angularVelocity.x;
+                object.rotation.y += physics.angularVelocity.y;
+                object.rotation.z += physics.angularVelocity.z;
+                
+                // Check for floor collision
+                if (object.position.y < physics.floorY) {
+                    // No bouncing - make object static immediately
+                    object.position.y = physics.floorY;
+                    makeObjectStatic(object);
+                }
+                
+                // Apply custom air resistance
+                physics.velocity.multiplyScalar(physics.airResistance);
+                physics.angularVelocity.multiplyScalar(physics.airResistance);
+                
+                // Add some random wobble during fall for lighter objects
+                if (object.userData.name !== 'Desk' && 
+                    object.userData.name !== 'Bookshelf' && 
+                    object.userData.name !== 'Study Chair') {
+                    const wobbleAmount = 0.002 * Math.abs(physics.velocity.y);
+                    physics.velocity.x += (Math.random() - 0.5) * wobbleAmount;
+                    physics.velocity.z += (Math.random() - 0.5) * wobbleAmount;
+                }
+            });
+
             // Blob animation
             time += 0.016;
 
             scene.traverse((object) => {
                 if (object.userData && object.userData.name === 'UwU Blob') {
                     if (isFloating) {
-                        // Floating movement
-                        const bob = Math.sin(time * bobSpeed) * floatHeight;
-                        object.position.y = 3 + bob;
-                        object.position.x = Math.sin(time * bobSpeed * 0.7) * swayAmount;
+                        // 3D Floating movement
+                        if (!object.userData.basePosition) {
+                            object.userData.basePosition = new THREE.Vector3(8, 3, -7);
+                        }
+                        const basePos = object.userData.basePosition;
+                        
+                        // Independent movement in each direction
+                        const xFloat = Math.sin(time * bobSpeed * 0.7) * swayAmount * 1.5;
+                        const yFloat = Math.sin(time * bobSpeed) * floatHeight;
+                        const zFloat = Math.cos(time * bobSpeed * 0.5) * swayAmount;
+                        
+                        // Apply 3D movement relative to base position
+                        object.position.x = basePos.x + xFloat;
+                        object.position.y = basePos.y + yFloat;
+                        object.position.z = basePos.z + zFloat;
 
-                        // Squish/stretch
+                        // Enhanced squish/stretch with subtle z-axis influence
                         const squish = 1 + Math.sin(time * bobSpeed) * 0.07;
-                        object.scale.set(0.5 / squish, 0.5 * squish, 0.5 / squish);
+                        const zSquish = 1 + Math.cos(time * bobSpeed * 0.5) * 0.03;
+                        object.scale.set(0.5 / squish, 0.5 * squish, 0.5 * zSquish);
+                        
+                        // Add subtle rotations in all directions
+                        object.rotation.x = Math.sin(time * bobSpeed * 0.3) * 0.05;
                         object.rotation.z = Math.sin(time * bobSpeed * 0.5) * 0.08;
-                        object.rotation.y = Math.sin(time * bobSpeed * 0.3) * 0.1;
+                        object.rotation.y = Math.sin(time * bobSpeed * 0.4) * 0.1;
 
                         // Blinking
                         blinkTimer += 0.016;
@@ -2191,6 +2929,15 @@
                             new THREE.Vector3(0.2, -0.1 + smileOffset, 0.95)
                         );
                         mouth.geometry = new THREE.BufferGeometry().setFromPoints([...leftCurve.getPoints(8), ...rightCurve.getPoints(8)]);
+
+                        // Animate speech bubble
+                        const speechBubble = object.userData.speechBubble;
+                        if (speechBubble) {
+                            speechBubble.position.y = 1.5 + Math.sin(time * bobSpeed * 0.8) * 0.1;
+                            speechBubble.rotation.z = Math.sin(time * bobSpeed * 0.5) * 0.03;
+                        }
+
+                        // No ear animation in this version
                     }
                 }
             });
@@ -2351,14 +3098,8 @@
             }
         });
 
-        // Blob floating toggle
-        const button = document.getElementById('toggleFloating');
-        const statusText = document.getElementById('statusText');
-        button.addEventListener('click', () => {
-            isFloating = !isFloating;
-            button.textContent = isFloating ? "Pause" : "Float";
-            statusText.textContent = `Click to ${isFloating ? "pause" : "start"} floating`;
-        });
+        // Blob is always floating
+        isFloating = true;
     </script>
 </body>
 </html>
