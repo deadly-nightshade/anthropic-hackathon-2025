@@ -4,9 +4,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+bundle.js*
+
 # Build outputs
 build/
-dist/
 *.tgz
 
 # Environment variables
