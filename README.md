@@ -1,4 +1,4 @@
-# meet vroom (virtual room), an AI-Driven Interactive Room Editor
+# meet vroom (virtual room), an AI-Driven Interactive 3D Room Editor
 
 A sophisticated web application that combines 3D visualization with AI-powered room editing through natural language commands. Users can interact with a virtual room using simple text prompts like "add a bed to the right side" or "change the wall color to blue", and watch as AI agents collaboratively transform the space in real-time.
 
@@ -30,23 +30,33 @@ This project demonstrates advanced AI collaboration through a multi-agent system
    npm install
    ```
 
-3. Create a `.env` file in the root directory:
-   ```
-   ANTHROPIC_API_KEY=your_api_key_here
-   PORT=3000
+3. Set up your environment variables:
+   ```bash
+   # Copy the template file to create your .env file
+   copy .env.template .env
+   
+   # On Mac/Linux use:
+   # cp .env.template .env
    ```
 
-4. Build the frontend:
+4. Edit the `.env` file and add your Anthropic API key:
+   ```
+   ANTHROPIC_API_KEY=your_api_key_here
+   CODE_MODEL=claude-sonnet-4-5
+   DESCRIPTION_MODEL=claude-haiku-4-5
+   ```
+
+5. Build the frontend:
    ```bash
    npm run build
    ```
 
-5. Start the server:
+6. Start the server:
    ```bash
    npm start
    ```
 
-6. Open your browser to `http://localhost:3000`
+7. Open your browser to `http://localhost:3000`
 
 ### Development Mode
 
