@@ -586,6 +586,10 @@
         
         // Function to update object hover effect
         function updateObjectHoverEffect(object, isHovered) {
+            // Don't show hover effects in drag mode
+            if (isDragMode) {
+                isHovered = false;
+            }
             // Find and update outline mesh
             object.traverse(child => {
                 if (child.isOutlineMesh) {
@@ -2595,10 +2599,10 @@
         
         // General hover detection
         renderer.domElement.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) {
+            if (!isMouseDown && !isDragMode) {
                 mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-                
+
                 raycaster.setFromCamera(mouse, camera);
                 const intersects = raycaster.intersectObjects(clickableObjects, true);
                 
@@ -3047,7 +3051,10 @@
         });
         
         renderer.domElement.addEventListener('click', (e) => {
-                    // Check if this was a drag vs a click
+            // Don't show info in drag mode
+            if (isDragMode) return;
+            
+            // Check if this was a drag vs a click
             const distance = Math.sqrt(
                 Math.pow(e.clientX - clickStartPos.x, 2) + 
                 Math.pow(e.clientY - clickStartPos.y, 2)
@@ -3059,9 +3066,7 @@
                     makeObjectStatic(draggedObject);
                 }
                 return;
-            }
-            
-            raycaster.setFromCamera(mouse, camera);
+            }            raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(clickableObjects, true);            if (intersects.length > 0) {
                 // Find the parent group with userData
                 let object = intersects[0].object;
