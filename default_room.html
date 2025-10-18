@@ -1646,6 +1646,7 @@
         // Posters/artwork on wall
         function createWallArt() {
             const artGroup = new THREE.Group();
+            artGroup.userData.isWallMounted = true; // Mark as wall-mounted object
             
             // Poster 1 - rounded corners
             const poster1Shape = new THREE.Shape();
@@ -2266,6 +2267,161 @@
             });
         }
         
+        // Create dorm bed with ladder
+        function createDormBed() {
+            const bedGroup = new THREE.Group();
+            bedGroup.userData = { name: 'Dorm Bed', description: 'Classic college lofted bed 🛏️' };
+
+            // Bed frame dimensions
+            const frameWidth = 3.5;
+            const frameLength = 7;
+            const frameHeight = 5.5;
+            const poleThickness = 0.1;
+
+            // Frame material
+            const frameMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4a4a4a,
+                roughness: 0.7,
+                metalness: 0.3
+            });
+
+            // Create vertical posts
+            for (let x of [-frameWidth/2, frameWidth/2]) {
+                for (let z of [-frameLength/2, frameLength/2]) {
+                    const post = new THREE.Mesh(
+                        new THREE.CylinderGeometry(poleThickness, poleThickness, frameHeight, 8),
+                        frameMaterial
+                    );
+                    post.position.set(x, frameHeight/2, z);
+                    post.castShadow = true;
+                    bedGroup.add(post);
+                }
+            }
+
+            // Horizontal support bars
+            for (let y of [0.3, frameHeight-0.1]) {
+                // Side bars
+                for (let z of [-frameLength/2, frameLength/2]) {
+                    const bar = new THREE.Mesh(
+                        new THREE.CylinderGeometry(poleThickness/1.2, poleThickness/1.2, frameWidth, 8),
+                        frameMaterial
+                    );
+                    bar.rotation.z = Math.PI/2;
+                    bar.position.set(0, y, z);
+                    bar.castShadow = true;
+                    bedGroup.add(bar);
+                }
+                
+                // Front and back bars
+                for (let x of [-frameWidth/2, frameWidth/2]) {
+                    const bar = new THREE.Mesh(
+                        new THREE.CylinderGeometry(poleThickness/1.2, poleThickness/1.2, frameLength, 8),
+                        frameMaterial
+                    );
+                    bar.rotation.x = Math.PI/2;
+                    bar.position.set(x, y, 0);
+                    bar.castShadow = true;
+                    bedGroup.add(bar);
+                }
+            }
+
+            // Mattress platform
+            const platform = new THREE.Mesh(
+                new THREE.BoxGeometry(frameWidth-0.2, 0.1, frameLength-0.2),
+                new THREE.MeshStandardMaterial({ color: 0x3d3d3d })
+            );
+            platform.position.set(0, frameHeight-0.15, 0);
+            platform.castShadow = true;
+            bedGroup.add(platform);
+
+            // Mattress
+            const mattress = new THREE.Mesh(
+                new THREE.BoxGeometry(frameWidth-0.3, 0.4, frameLength-0.3, 2, 1, 2),
+                new THREE.MeshStandardMaterial({ color: 0xe0e0e0 })
+            );
+            mattress.position.set(0, frameHeight+0.1, 0);
+            mattress.castShadow = true;
+            
+            // Add mattress deformation
+            const positionAttribute = mattress.geometry.attributes.position;
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const y = positionAttribute.getY(i);
+                if (y > 0) {
+                    const x = positionAttribute.getX(i);
+                    const z = positionAttribute.getZ(i);
+                    const distFromCenter = Math.sqrt(x * x + z * z) / 2;
+                    const depression = Math.max(0, 0.1 * (1 - distFromCenter));
+                    positionAttribute.setY(i, y - depression);
+                }
+            }
+            positionAttribute.needsUpdate = true;
+            mattress.geometry.computeVertexNormals();
+            bedGroup.add(mattress);
+
+            // Ladder
+            const ladderWidth = 0.8;
+            const ladderHeight = frameHeight;
+            const numRungs = 6;
+
+            // Ladder poles
+            for (let x of [-ladderWidth/2, ladderWidth/2]) {
+                const pole = new THREE.Mesh(
+                    new THREE.CylinderGeometry(poleThickness/1.2, poleThickness/1.2, ladderHeight, 8),
+                    frameMaterial
+                );
+                pole.position.set(x, ladderHeight/2, frameLength/2 + 0.3);
+                pole.castShadow = true;
+                bedGroup.add(pole);
+            }
+
+            // Ladder rungs
+            for (let i = 1; i <= numRungs; i++) {
+                const rung = new THREE.Mesh(
+                    new THREE.CylinderGeometry(poleThickness/1.3, poleThickness/1.3, ladderWidth, 8),
+                    frameMaterial
+                );
+                rung.rotation.z = Math.PI/2;
+                rung.position.set(0, (i * ladderHeight)/(numRungs + 1), frameLength/2 + 0.3);
+                rung.castShadow = true;
+                bedGroup.add(rung);
+            }
+
+            // Safety rails on sides and back
+            const railHeight = 0.8;
+            for (let x of [-frameWidth/2, frameWidth/2]) {
+                const sideRail = new THREE.Mesh(
+                    new THREE.CylinderGeometry(poleThickness/1.2, poleThickness/1.2, frameLength-0.2, 8),
+                    frameMaterial
+                );
+                sideRail.rotation.x = Math.PI/2;
+                sideRail.position.set(x, frameHeight+railHeight, 0);
+                sideRail.castShadow = true;
+                bedGroup.add(sideRail);
+            }
+
+            // Back rail
+            const backRail = new THREE.Mesh(
+                new THREE.CylinderGeometry(poleThickness/1.2, poleThickness/1.2, frameWidth-0.2, 8),
+                frameMaterial
+            );
+            backRail.rotation.z = Math.PI/2;
+            backRail.position.set(0, frameHeight+railHeight, -frameLength/2);
+            backRail.castShadow = true;
+            bedGroup.add(backRail);
+
+            // Add outline effect to the bed
+            const outline = addOutlineEffect(bedGroup, 1.02);
+            if (outline) {
+                bedGroup.add(outline);
+            }
+
+            // Position the bed on the left side of the room
+            bedGroup.position.set(-6, 0, -5);
+
+            clickableObjects.push(bedGroup);
+            return bedGroup;
+        }
+
         // Build the scene
         scene.add(createRoom());
         scene.add(createWindow());
@@ -2608,9 +2764,55 @@
                     });
                     isFloating = true;
                 } else {
-                    // Handle regular object release
-                    releasedObject.position.y = 0;  // Drop to ground
-                    makeObjectStatic(releasedObject);
+                    const isWallObject = releasedObject.userData.isWallMounted;
+                    
+                    // Find nearest wall if it's a wall object
+                    if (isWallObject) {
+                        const pos = releasedObject.position;
+                        let wallDistance = Infinity;
+                        let wallPosition = new THREE.Vector3();
+                        let wallNormal = new THREE.Vector3();
+                        
+                        // Check each wall
+                        const walls = [
+                            { pos: new THREE.Vector3(-9.9, 0, 0), normal: new THREE.Vector3(1, 0, 0) },  // Left wall
+                            { pos: new THREE.Vector3(9.9, 0, 0), normal: new THREE.Vector3(-1, 0, 0) },  // Right wall
+                            { pos: new THREE.Vector3(0, 0, -9.9), normal: new THREE.Vector3(0, 0, 1) }   // Back wall
+                        ];
+                        
+                        walls.forEach(wall => {
+                            const dist = Math.abs(pos.dot(wall.normal) - wall.pos.dot(wall.normal));
+                            if (dist < wallDistance) {
+                                wallDistance = dist;
+                                wallPosition.copy(pos).projectOnPlane(wall.normal);
+                                wallNormal.copy(wall.normal);
+                            }
+                        });
+                        
+                        // Create wall snap animation
+                        droppingObjects.set(releasedObject, {
+                            startTime: Date.now(),
+                            duration: 600, // Slower wall snap
+                            startPos: releasedObject.position.clone(),
+                            targetPos: wallPosition,
+                            easing: 'easeOutQuad',
+                            isWallSnap: true
+                        });
+                    } else {
+                        // Regular floor drop with slower animation
+                        const dropDistance = releasedObject.position.y;
+                        const dropDuration = Math.sqrt(dropDistance) * 0.3; // Doubled duration for smoother drop
+                        const startY = releasedObject.position.y;
+                        
+                        // Create drop animation with gentler motion
+                        droppingObjects.set(releasedObject, {
+                            startTime: Date.now(),
+                            duration: dropDuration * 1200, // Slightly longer duration
+                            startY: startY,
+                            targetY: 0,
+                            easing: 'easeOutSoft'
+                        });
+                    }
                 }
                 
                 // Force update raycaster to prevent sticky behavior
@@ -2724,9 +2926,58 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
+        // Map to track dropping objects
+        const droppingObjects = new Map();
+
+        // Easing functions for smooth animations
+        const easingFunctions = {
+            easeOutSoft: function(t) {
+                // Subtle deceleration with minimal bounce
+                return 1 - Math.pow(1 - t, 3);
+            },
+            easeOutQuad: function(t) {
+                return t * (2 - t);
+            },
+            easeOutGentle: function(t) {
+                // Very gentle stopping motion
+                const t2 = t * t;
+                return t2 * (3 - 2 * t);
+            }
+        };
+
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
+
+            // Update dropping objects
+            const currentTime = Date.now();
+            droppingObjects.forEach((dropData, object) => {
+                const elapsed = currentTime - dropData.startTime;
+                const progress = Math.min(elapsed / dropData.duration, 1);
+                
+                if (progress < 1) {
+                    // Apply easing function
+                    const easedProgress = easingFunctions[dropData.easing](progress);
+                    
+                    if (dropData.isWallSnap) {
+                        // Wall object snapping animation
+                        object.position.lerp(dropData.targetPos, easedProgress);
+                    } else {
+                        // Regular floor drop animation
+                        const currentY = dropData.startY + (dropData.targetY - dropData.startY) * easedProgress;
+                        object.position.y = currentY;
+                    }
+                } else {
+                    // Animation complete
+                    if (dropData.isWallSnap) {
+                        object.position.copy(dropData.targetPos);
+                    } else {
+                        object.position.y = dropData.targetY;
+                    }
+                    droppingObjects.delete(object);
+                    makeObjectStatic(object);
+                }
+            });
 
             // Room boundaries (based on room size from createRoom function)
             const roomBounds = {
